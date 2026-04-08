@@ -1,0 +1,7 @@
+slr_ft,n_blocks,n_new_fragile,n_new_isolated,n_new_inundated,n_baseline_redundant_to_fragile,n_baseline_redundant_to_isolated,n_baseline_redundant_to_inundated,n_any_loss_of_redundancy
+1,70695,15,10,107,15,8,31,54
+2,70695,154,349,308,154,153,132,439
+3,70695,532,1089,1144,532,578,613,1723
+4,70695,730,1938,2839,730,1111,1666,3507
+5,70695,1302,3482,6490,1302,2297,4156,7755
+6,70695,1403,6539,13816,1403,4834,9414,15651
