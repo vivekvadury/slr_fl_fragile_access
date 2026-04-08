@@ -312,7 +312,7 @@ def prepare_blocks_layer(blocks: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     return output
 
-
+# What does the margin of error?
 def build_study_area_boundary(
     bounds: tuple[float, float, float, float],
     source_crs,

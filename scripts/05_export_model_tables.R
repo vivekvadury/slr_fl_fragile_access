@@ -1,0 +1,422 @@
+# ============================================================
+# 05_export_model_tables.R
+#
+# Exports every regression model from 04_regressions.R into a
+# single Excel workbook (one tab per section / model group).
+# Run this after 04_regressions.R has been sourced so all model
+# objects are already in the environment — OR set SOURCE_SCRIPT
+# to TRUE to re-run 04_regressions.R automatically.
+# ============================================================
+
+SOURCE_SCRIPT <- TRUE   
+
+library(tidyverse)
+library(fixest)
+library(marginaleffects)
+library(modelsummary)
+library(openxlsx)
+
+if (SOURCE_SCRIPT) {
+  message("Sourcing 04_regressions.R …")
+  source("scripts/04_regressions.R")
+  message("Done sourcing.")
+}
+
+# ============================================================
+# Helpers
+# ============================================================
+
+# Shared covariate labels (mirrors the `dict` used in etable calls)
+VAR_LABELS <- c(
+  "z_pct_black_nh"      = "Black share (z)",
+  "z_pct_hispanic"      = "Hispanic share (z)",
+  "z_renter_share"      = "Renter share (z)",
+  "z_log_median_income" = "Log median income (z)",
+  "z_median_age"        = "Median age (z)"
+)
+
+# GOF rows to keep in every model table
+GOF_ROWS <- tribble(
+  ~raw,           ~clean,              ~fmt,
+  "nobs",         "N",                 0,
+  "r.squared",    "R²",                3,
+  "adj.r.squared","Adj. R²",           3,
+  "logLik",       "Log-likelihood",    1
+)
+
+# Build a modelsummary data frame for a list of models
+ms_df <- function(model_list, notes = NULL) {
+  modelsummary(
+    model_list,
+    stars       = c("*" = .10, "**" = .05, "***" = .01),
+    coef_rename = VAR_LABELS,
+    gof_map     = GOF_ROWS,
+    output      = "data.frame",
+    notes       = notes
+  )
+}
+
+# Format an avg_slopes() result for export
+format_ame <- function(ame_obj, model_name) {
+  df <- as.data.frame(ame_obj)
+
+  # Select columns that are guaranteed to exist
+  keep <- intersect(
+    c("term", "contrast", "estimate", "std.error", "statistic", "p.value",
+      "conf.low", "conf.high"),
+    names(df)
+  )
+  df <- df[, keep, drop = FALSE]
+
+  rename_map <- c(
+    term      = "Variable",
+    contrast  = "Contrast",
+    estimate  = "Estimate",
+    std.error = "Std. Error",
+    statistic = "t / z",
+    p.value   = "p-value",
+    conf.low  = "95% CI Low",
+    conf.high = "95% CI High"
+  )
+  names(df) <- rename_map[names(df)]
+  df <- tibble::add_column(df, Model = model_name, .before = 1)
+  df
+}
+
+# ---- Workbook styles ----
+wb <- createWorkbook()
+
+hdr_style <- createStyle(
+  fontColour      = "#FFFFFF",
+  fgFill          = "#1F3864",   # dark navy
+  halign          = "center",
+  textDecoration  = "Bold",
+  wrapText        = TRUE,
+  border          = "Bottom",
+  borderColour    = "#FFFFFF"
+)
+
+title_style <- createStyle(
+  fontSize       = 11,
+  textDecoration = "Bold",
+  fontColour     = "#1F3864"
+)
+
+note_style <- createStyle(
+  fontSize   = 9,
+  fontColour = "#595959"
+)
+
+# Write a model (or AME) data frame to a new sheet
+add_sheet <- function(wb, sheet_name, df, title, notes = character(0)) {
+  addWorksheet(wb, sheet_name)
+
+  row <- 1
+
+  # Title row
+  writeData(wb, sheet_name, title, startRow = row, startCol = 1)
+  addStyle(wb, sheet_name, title_style, rows = row, cols = 1)
+  row <- row + 1
+
+  # Note rows (one line each)
+  for (n in notes) {
+    writeData(wb, sheet_name, n, startRow = row, startCol = 1)
+    addStyle(wb, sheet_name, note_style, rows = row, cols = 1)
+    row <- row + 1
+  }
+
+  row <- row + 1  # blank spacer
+
+  # Data table
+  writeData(wb, sheet_name, df, startRow = row, headerStyle = hdr_style)
+
+  # Freeze top rows (title + notes + blank + header)
+  freezePane(wb, sheet_name, firstActiveRow = row + 1)
+
+  # Auto-width columns
+  setColWidths(wb, sheet_name, cols = seq_len(ncol(df)), widths = "auto")
+}
+
+
+# ============================================================
+# SHEET 1 — Section 3: Baseline vulnerability at 0 ft SLR
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S3 Baseline Fragile",
+  df    = ms_df(list(
+    "Fragile share (OLS)"     = m_base_share,
+    "Fragile (Binomial)"      = m_base_binom,
+    "Fragile-or-Worse (OLS)"  = m_base_worse
+  )),
+  title = "Section 3 — Baseline vulnerability: who already has fragile access at 0 ft SLR?",
+  notes = c(
+    "Data: block groups at slr_ft = 0. County FE absorbed. Weights: total_blocks. Clustered SEs: tract_geoid.",
+    "Binomial coefficients are on the log-odds scale."
+  )
+)
+
+# ============================================================
+# SHEET 2 — Section 4: Pooled SLR panel — lost redundancy share
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S4 Lost Redundancy",
+  df    = ms_df(list(
+    "Lost redundancy share (OLS)" = m_loss_share
+  )),
+  title = "Section 4 — Pooled SLR panel: share of blocks that lost redundancy (slr_ft > 0)",
+  notes = c(
+    "Data: block groups × SLR scenarios 1–6 ft. County + SLR-scenario FEs absorbed.",
+    "Weights: total_blocks. Clustered SEs: block_group_geoid."
+  )
+)
+
+# ============================================================
+# SHEET 3 — Section 5: Transitions from baseline-redundant blocks
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S5 Redundant Transitions",
+  df    = ms_df(list(
+    "Redundant → Fragile"    = m_red_to_fragile,
+    "Redundant → Isolated"   = m_red_to_isolated,
+    "Redundant → Inundated"  = m_red_to_inundated,
+    "Redundant → Any Worse"  = m_red_to_worse
+  )),
+  title = "Section 5 — Conditional transitions: among baseline-redundant blocks, who loses redundancy?",
+  notes = c(
+    "Restricted to block groups with baseline_redundant_n > 0. Binomial logit (log-odds scale).",
+    "County + SLR-scenario FEs absorbed. Weights: baseline_redundant_n. Clustered SEs: block_group_geoid."
+  )
+)
+
+# ============================================================
+# SHEET 4 — Section 6: Transitions from fragile → worse + isolated → inundated
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S6 Fragile-Isolated Trans",
+  df    = ms_df(list(
+    "Fragile → Isolated"   = m_fragile_to_isolated,
+    "Fragile → Inundated"  = m_fragile_to_inundated,
+    "Fragile → Any Worse"  = m_fragile_to_worse,
+    "Isolated → Inundated" = m_isolated_to_inundated
+  )),
+  title = "Section 6 — Downward transitions from fragile and isolated blocks",
+  notes = c(
+    "Fragile models restricted to baseline_fragile_n > 0; Isolated model to baseline_isolated_n > 0.",
+    "Binomial logit (log-odds scale). County + SLR-scenario FEs absorbed. Clustered SEs: block_group_geoid."
+  )
+)
+
+# ============================================================
+# SHEET 5 — All transition probability models in one table
+# (mirrors the "BUILDING A TABLE WITH ALL TRANSITION PROBABILITIES"
+#  etable block in 04_regressions.R)
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "All Transitions",
+  df    = ms_df(list(
+    "Redundant → Fragile"   = m_red_to_fragile,
+    "Redundant → Isolated"  = m_red_to_isolated,
+    "Redundant → Inundated" = m_red_to_inundated,
+    "Redundant → Any Worse" = m_red_to_worse,
+    "Fragile → Isolated"    = m_fragile_to_isolated,
+    "Fragile → Inundated"   = m_fragile_to_inundated,
+    "Fragile → Any Worse"   = m_fragile_to_worse,
+    "Isolated → Inundated"  = m_isolated_to_inundated
+  )),
+  title = "All transition probability models — full access-degradation cascade (log-odds scale)",
+  notes = c(
+    "Each column = one step down the access-quality ladder (Redundant → Fragile → Isolated → Inundated).",
+    "All models: binomial logit. County + SLR-scenario FEs absorbed. Clustered SEs: block_group_geoid.",
+    "Redundant models weighted by baseline_redundant_n; Fragile by baseline_fragile_n; Isolated by baseline_isolated_n."
+  )
+)
+
+# ============================================================
+# SHEET 7 — Section 7: Detour burden among still-connected places
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S7 Detour Burden",
+  df    = ms_df(list(
+    "Log detour burden (OLS)" = m_detour
+  )),
+  title = "Section 7 — Detour burden among still-connected block groups",
+  notes = c(
+    "DV: log(mean path inflation ratio). Restricted to non-missing log_detour.",
+    "County + SLR-scenario FEs absorbed. Weights: total_blocks. Clustered SEs: block_group_geoid.",
+    "NOTE: limited variation in outcome — consider dropping from presentation."
+  )
+)
+
+# ============================================================
+# SHEET 8 — Section 8: Does inequality steepen with SLR? (interactions)
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S8 SLR Interaction",
+  df    = ms_df(list(
+    "Lost redundancy × SLR scenario" = m_loss_interact
+  )),
+  title = "Section 8 — Does inequality steepen as SLR increases? Demographic × SLR-scenario interactions",
+  notes = c(
+    "DV: share_lost_redundancy. County FE absorbed. Weights: total_blocks. Clustered SEs: block_group_geoid.",
+    "Reference SLR level: 1 ft. Interaction coefficients show how the demographic gradient changes at each scenario."
+  )
+)
+
+# ============================================================
+# SHEET 9 — Section 9: Tract FE robustness check
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S9 Tract FE Robustness",
+  df    = ms_df(list(
+    "Lost redundancy — County FE" = m_loss_share,
+    "Lost redundancy — Tract FE"  = m_loss_tractfe
+  )),
+  title = "Section 9 — Robustness: tract FE vs. county FE for lost redundancy",
+  notes = c(
+    "Left: county + SLR-scenario FEs. Right: tract + SLR-scenario FEs.",
+    "Weights: total_blocks. Clustered SEs: block_group_geoid."
+  )
+)
+
+# ============================================================
+# SHEET 10 — Section 12a: Table A — Baseline isolation vs. fragility
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S12a Baseline Comparison",
+  df    = ms_df(list(
+    "Isolated (OLS)"         = m_base_isolated_ols,
+    "Isolated (Binomial)"    = m_base_isolated_binom,
+    "Fragile (OLS)"          = m_base_share,
+    "Fragile (Binomial)"     = m_base_binom,
+    "Fragile-or-Worse (OLS)" = m_base_worse
+  )),
+  title = "Section 12a (Table A) — Baseline: Best et al. isolation lens vs. fragility/redundancy lens (slr_ft = 0)",
+  notes = c(
+    "Unit: block group. County FE absorbed. Weights: total_blocks. Clustered SEs: tract_geoid.",
+    "OLS = weighted linear model on shares. Binomial = feglm on proportion with total_blocks trials."
+  )
+)
+
+# ============================================================
+# SHEET 11 — Section 12b: Table B — SLR panel: isolation vs. redundancy
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S12b SLR Comparison",
+  df    = ms_df(list(
+    "New isolated (share)"    = m_new_isolated_share,
+    "New fragile (share)"     = m_new_fragile_share,
+    "Lost redundancy (share)" = m_loss_share
+  )),
+  title = "Section 12b (Table B) — Under SLR, who gains newly degraded access? Isolation-only vs. redundancy framework",
+  notes = c(
+    "Unit: block group × SLR scenario (1–6 ft). County + SLR-scenario FEs absorbed.",
+    "Weights: total_blocks. Clustered SEs: block_group_geoid."
+  )
+)
+
+# ============================================================
+# SHEET 12 — Section 12c: Table C — Conditional redundant transitions
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S12c Red Conditional",
+  df    = ms_df(list(
+    "Redundant → Fragile"   = m_red_to_fragile,
+    "Redundant → Isolated"  = m_red_to_isolated,
+    "Redundant → Inundated" = m_red_to_inundated,
+    "Redundant → Any Worse" = m_red_to_worse
+  )),
+  title = "Section 12c (Table C) — Conditional transitions from baseline redundancy (binomial, log-odds)",
+  notes = c(
+    "Sharpest test: isolation framework only sees Redundant → Isolated; extension also sees Redundant → Fragile.",
+    "Restricted to baseline_redundant_n > 0. County + SLR FEs absorbed. Clustered SEs: block_group_geoid."
+  )
+)
+
+# ============================================================
+# SHEET 13 — Section 12d: Table D — Mild vs. severe degradation
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "S12d Mild vs Severe",
+  df    = ms_df(list(
+    "Mild — Redundant → Fragile"           = m_red_to_mild,
+    "Severe — Redundant → Isol/Inund"      = m_red_to_severe,
+    "Any degradation — Redundant → Worse"  = m_red_to_worse
+  )),
+  title = "Section 12d (Table D) — Mild vs. severe degradation from baseline redundancy",
+  notes = c(
+    "Mild = transition to fragile only (still has one dry path).",
+    "Severe = transition to isolated or inundated (no dry path or submerged).",
+    "If coefficients differ between Mild and Severe, fragility captures a demographically distinct population."
+  )
+)
+
+# ============================================================
+# Compute the two AMEs not calculated in 04_regressions.R
+# ============================================================
+ame_fragile_to_worse     <- avg_slopes(m_fragile_to_worse,     vcov = FALSE)
+ame_isolated_to_inundated <- avg_slopes(m_isolated_to_inundated, vcov = FALSE)
+
+# ============================================================
+# SHEET 13 — AMEs: all transition models (comprehensive review)
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "AME All Transitions",
+  df    = bind_rows(
+    format_ame(ame_red_to_fragile,        "Redundant → Fragile"),
+    format_ame(ame_red_to_isolated,       "Redundant → Isolated"),
+    format_ame(ame_red_to_inundated,      "Redundant → Inundated"),
+    format_ame(ame_red_to_worse,          "Redundant → Any Worse"),
+    format_ame(ame_fragile_to_isolated,   "Fragile → Isolated"),
+    format_ame(ame_fragile_to_inundated,  "Fragile → Inundated"),
+    format_ame(ame_fragile_to_worse,      "Fragile → Any Worse"),
+    format_ame(ame_isolated_to_inundated, "Isolated → Inundated")
+  ),
+  title = "Average Marginal Effects (probability scale) — all transition models",
+  notes = c(
+    "AMEs translate binomial log-odds coefficients into probability-scale effects (i.e. percentage-point change per 1-SD shift in predictor).",
+    "Each row is one predictor × one transition model. Compare across columns to see where demographic gradients appear or disappear.",
+    "Redundant/Fragile/Isolated AMEs computed with vcov = FALSE (Section 5–6); review SEs with caution."
+  )
+)
+
+# ============================================================
+# SHEET 14 — AMEs: Section 12e comparison models
+# ============================================================
+add_sheet(
+  wb,
+  sheet_name = "AME Comparison Models",
+  df    = bind_rows(
+    format_ame(ame_base_isolated, "Baseline Isolated (binomial)"),
+    format_ame(ame_red_to_mild,   "Redundant → Mild (fragile only)"),
+    format_ame(ame_red_to_severe, "Redundant → Severe (isol/inund)")
+  ),
+  title = "Average Marginal Effects (probability scale) — Section 12e framework comparison models",
+  notes = c(
+    "Clustered SEs: base_isolated uses tract_geoid; mild/severe use block_group_geoid.",
+    "Compare Mild vs. Severe AMEs to assess whether fragility captures a demographically distinct population."
+  )
+)
+
+# ============================================================
+# Save workbook
+# ============================================================
+out_path <- "outputs/tables/all_regression_models_prelim.xlsx"
+dir.create(dirname(out_path), showWarnings = FALSE, recursive = TRUE)
+saveWorkbook(wb, out_path, overwrite = TRUE)
+
+cat(sprintf("\nExported %d sheets to: %s\n", length(names(wb)), out_path))
+cat("Sheets:\n")
+for (s in names(wb)) cat(sprintf("  - %s\n", s))

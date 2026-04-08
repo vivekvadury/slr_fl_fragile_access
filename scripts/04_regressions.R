@@ -40,7 +40,7 @@ dat2 <- dat %>%
   mutate(
     slr_ft_f = factor(slr_ft),
     
-    # Conditional transition shares!
+    # Calculating transition shares
     prop_red_to_worse = if_else(
       baseline_redundant_n > 0,
       any_loss_of_redundancy / baseline_redundant_n,
@@ -82,7 +82,7 @@ dat2 <- dat %>%
   mutate(
     across(
       c(pct_black_nh, pct_hispanic, renter_share, log_median_income, median_age),
-      ~ as.numeric(scale(.x)),
+      ~ as.numeric(scale(.x)), # Z-scoring for comparability
       .names = "z_{.col}"
     )
   )
@@ -113,9 +113,10 @@ m_base_share <- feols(
     z_log_median_income + z_median_age |
     county_name,
   data = base_dat,
-  weights = ~ total_blocks,
+  weights = ~ total_blocks, # Weighted across total blocks
   vcov = ~ tract_geoid
-)
+) 
+summary(m_base_share)
 
 # Binomial grouped model: fragile blocks out of total blocks
 m_base_binom <- feglm(
@@ -127,9 +128,28 @@ m_base_binom <- feglm(
   family = binomial(),
   weights = ~ total_blocks,
   vcov = ~ tract_geoid
-)
+) # Coefficents on the log-odds scale. 
+summary(m_base_binom)
 
-# Optional broader baseline vulnerability
+# Quick recap on the binomal model ---
+#   weights = ~ baseline_redundant_n (or baseline_fragile_n, or
+#   total_blocks) is the number of binomial trials. The outcome
+#   proportion times this weight recovers the event count. The
+#   likelihood naturally downweights block groups with few trials
+#   because small samples carry less information about the true
+#   transition probability.
+
+# Binomial regression (feglm, family = binomial()):
+#   Models a proportion as a count of events out of a known
+#   number of trials (e.g., 12 blocks became fragile out of 30
+#   that were redundant at baseline). Unlike OLS on a share,
+#   the binomial likelihood (1) respects the 0-1 bounds of the
+#   outcome, (2) naturally accounts for differences in precision
+#   across block groups with different trial counts, and
+#   (3) estimates coefficients on the log-odds scale, which can
+#   be converted to probability-scale effects via avg_slopes().
+
+# Broader baseline vulnerability
 m_base_worse <- feols(
   share_fragile_or_worse ~
     z_pct_black_nh + z_pct_hispanic + z_renter_share +
@@ -139,9 +159,12 @@ m_base_worse <- feols(
   weights = ~ total_blocks,
   vcov = ~ tract_geoid
 )
+summary(m_base_worse)
 
 # ============================================================
 # 4. Pooled SLR models (slr_ft > 0), clustered by block group
+#    Identifies off cross-sectional demographic variation within 
+#    a county and within a given SLR scenario.
 # ============================================================
 trans_dat <- analysis_dat %>% filter(slr_ft > 0)
 
@@ -156,12 +179,14 @@ m_loss_share <- feols(
   vcov = ~ block_group_geoid
 )
 
+summary(m_loss_share)
+
 # ============================================================
-# 5. Transition models that better match your actual question
+# 5. Transition models --
 #    Among baseline-redundant blocks, who becomes fragile / isolated / inundated?
 # ============================================================
 redrisk_dat <- trans_dat %>%
-  filter(baseline_redundant_n > 0) %>%
+  filter(baseline_redundant_n > 0) %>% # Filtering to block groups that had one baseline redundant glock
   mutate(
     prop_red_to_worse     = any_loss_of_redundancy / baseline_redundant_n,
     prop_red_to_fragile   = baseline_redundant_to_fragile / baseline_redundant_n,
@@ -213,16 +238,48 @@ m_red_to_worse <- feglm(
   weights = ~ baseline_redundant_n,
   vcov = ~ block_group_geoid
 )
+etable(
+  m_red_to_fragile,
+  m_red_to_isolated,
+  m_red_to_inundated, 
+  m_red_to_worse,
+  headers = c("Redundant → Fragile", "Redundant → Isolated", 
+              "Redundant → Inundated", "Redundant → Worse"
+              ),
+  dict = c(
+    z_pct_black_nh = "Black share (z)",
+    z_pct_hispanic = "Hispanic share (z)",
+    z_renter_share = "Renter share (z)",
+    z_log_median_income = "Log median income (z)",
+    z_median_age = "Median age (z)"
+  ),
+  fitstat = ~ n + ll,
+  digits = 3
+)
+
 
 # ============================================================
-# 6. What happens to already-fragile places?
+# 6. What happens to already-fragile places? -- looking at one level down.
 # ============================================================
-fragrisk_dat <- trans_dat %>%
+fragrisk_dat <- trans_dat  %>%
   filter(baseline_fragile_n > 0) %>%
   mutate(
+    fragile_to_worse_n        = baseline_fragile_to_isolated + baseline_fragile_to_inundated,
+    prop_fragile_to_worse     = fragile_to_worse_n / baseline_fragile_n,
     prop_fragile_to_isolated  = baseline_fragile_to_isolated / baseline_fragile_n,
     prop_fragile_to_inundated = baseline_fragile_to_inundated / baseline_fragile_n
   )
+
+m_fragile_to_worse <- feglm(
+  prop_fragile_to_worse ~
+    z_pct_black_nh + z_pct_hispanic + z_renter_share +
+    z_log_median_income + z_median_age |
+    county_name + slr_ft_f,
+  data = fragrisk_dat,
+  family = binomial(),
+  weights = ~ baseline_fragile_n,
+  vcov = ~ block_group_geoid
+)
 
 m_fragile_to_isolated <- feglm(
   prop_fragile_to_isolated ~
@@ -245,9 +302,115 @@ m_fragile_to_inundated <- feglm(
   weights = ~ baseline_fragile_n,
   vcov = ~ block_group_geoid
 )
+etable(
+  m_fragile_to_isolated,
+  m_fragile_to_inundated,
+  m_fragile_to_worse,
+  headers = c(
+    "Fragile → Isolated",
+    "Fragile → Inundated",
+    "Fragile → Worse"
+    
+  ), 
+  
+  dict = c(
+    z_pct_black_nh = "Black share (z)",
+    z_pct_hispanic = "Hispanic share (z)",
+    z_renter_share = "Renter share (z)",
+    z_log_median_income = "Log median income (z)",
+    z_median_age = "Median age (z)"
+  ),
+  fitstat = ~ n + ll,
+  digits = 3
+  
+  )
+
+
+# Looking at the last transition!
+isolrisk_dat <- trans_dat %>%
+  filter(baseline_isolated_n > 0) %>%
+  mutate(
+    prop_isolated_to_inundated =
+      baseline_isolated_to_inundated / baseline_isolated_n
+  )
+
+
+m_isolated_to_inundated <- feglm(
+  prop_isolated_to_inundated ~
+    z_pct_black_nh +
+    z_pct_hispanic +
+    z_renter_share +
+    z_log_median_income +
+    z_median_age |
+    county_name + slr_ft_f,
+  data = isolrisk_dat,
+  family = binomial(),
+  weights = ~ baseline_isolated_n,
+  vcov = ~ block_group_geoid
+)
+
+etable(
+  m_fragile_to_isolated,
+  m_fragile_to_inundated,
+  m_fragile_to_worse,
+  m_isolated_to_inundated,
+  headers = c(
+    "Fragile → Isolated",
+    "Fragile → Inundated",
+    "Fragile → Worse",
+    "Isolated → Inundated"
+    
+  ), 
+  
+  dict = c(
+    z_pct_black_nh = "Black share (z)",
+    z_pct_hispanic = "Hispanic share (z)",
+    z_renter_share = "Renter share (z)",
+    z_log_median_income = "Log median income (z)",
+    z_median_age = "Median age (z)"
+  ),
+  fitstat = ~ n + ll,
+  digits = 3
+  
+)
+
+# -------------------------------------------------------------------------------
+# BUILDING A TABLE WITH ALL TRANSITION PROBABILTIES -----------------------------
+# -------------------------------------------------------------------------------
+
+etable(
+  m_fragile_to_isolated,
+  m_fragile_to_inundated,
+  m_fragile_to_worse,
+  m_fragile_to_isolated,
+  m_fragile_to_inundated,
+  m_fragile_to_worse,
+  m_isolated_to_inundated,
+  headers = c(
+    "Fragile → Isolated",
+    "Fragile → Inundated",
+    "Fragile → Worse",
+    "Fragile → Isolated",
+    "Fragile → Inundated",
+    "Fragile → Worse",
+    "Isolated → Inundated"
+    
+  ), 
+  
+  dict = c(
+    z_pct_black_nh = "Black share (z)",
+    z_pct_hispanic = "Hispanic share (z)",
+    z_renter_share = "Renter share (z)",
+    z_log_median_income = "Log median income (z)",
+    z_median_age = "Median age (z)"
+  ),
+  fitstat = ~ n + ll,
+  digits = 3
+  
+)
 
 # ============================================================
-# 7. Detour burden among still-connected places
+# 7. Detour burden among still-connected places -- drop?
 # ============================================================
 detour_dat <- trans_dat %>%
   filter(!is.na(log_detour))
@@ -262,6 +425,10 @@ m_detour <- feols(
   vcov = ~ block_group_geoid
 )
 
+summary(m_detour)
+
+hist(detour_dat$log_detour) # There is not much variation 
+
 # ============================================================
 # 8. Does inequality steepen as SLR increases?
 # ============================================================
@@ -275,6 +442,8 @@ m_loss_interact <- feols(
   vcov = ~ block_group_geoid
 )
 
+summary(m_loss_interact)
+
 # ============================================================
 # 9. Tighter geographic control: tract FE robustness
 # ============================================================
@@ -287,6 +456,8 @@ m_loss_tractfe <- feols(
   weights = ~ total_blocks,
   vcov = ~ block_group_geoid
 )
+
+summary(m_loss_tractfe) # This does not mean much, inequality can be much more fine-grained. 
 
 # ============================================================
 # 10. Marginal effects for logit-style models
@@ -347,7 +518,7 @@ modelsummary(
 # 12. Comparing frameworks: what does fragility expose
 #     that isolation alone misses?
 # ============================================================
-# The core argument of the extension is that Best et al.'s
+# The core argument of my extension is that Best et al.'s
 # binary isolated-vs-connected framework misses a large middle
 # category of *fragile* access. These tables put isolation-only
 # models next to redundancy/fragility models so the reader can
@@ -544,17 +715,17 @@ modelsummary(
 
 ame_base_isolated <- avg_slopes(
   m_base_isolated_binom,
-  vcov = ~ tract_geoid
+  vcov = FALSE
 )
 
 ame_red_to_mild <- avg_slopes(
   m_red_to_mild,
-  vcov = ~ block_group_geoid
+  vcov = FALSE
 )
 
 ame_red_to_severe <- avg_slopes(
   m_red_to_severe,
-  vcov = ~ block_group_geoid
+  vcov = FALSE
 )
 
 cat("\n=== AME: Baseline isolated (binomial) ===\n")
@@ -565,3 +736,128 @@ print(ame_red_to_mild)
 
 cat("\n=== AME: Redundant -> isolated/inundated (severe) ===\n")
 print(ame_red_to_severe)
+
+# ============================================================
+# 13. Spatial autocorrelation diagnostic: Moran's I
+# ============================================================
+# Tests whether residuals from the main models are spatially
+# clustered. If Moran's I is insignificant, no spatial issue.
+# If significant, we note it and point to tract FE + clustering
+# as partial protection.
+
+library(sf)
+library(spdep)
+library(tigris)
+options(tigris_use_cache = TRUE)
+
+# ---- 13a. Get block group geometries ----
+# Pull 2020 block group boundaries for the three counties.
+# county FIPS: Broward = 011, Miami-Dade = 086, Palm Beach = 099
+
+bg_broward   <- block_groups(state = "FL", county = "011", year = 2020)
+bg_miamidade <- block_groups(state = "FL", county = "086", year = 2020)
+bg_palmbeach <- block_groups(state = "FL", county = "099", year = 2020)
+
+bg_sf <- bind_rows(bg_broward, bg_miamidade, bg_palmbeach) %>%
+  rename(block_group_geoid = GEOID) %>%
+  select(block_group_geoid, geometry)
+
+# ---- 13b. Merge residuals onto geometries ----
+# We test residuals from several key models.  Start with the
+# baseline fragile share model (cross-sectional, one row per BG).
+
+base_resids <- base_dat %>%
+  mutate(
+    resid_base_fragile = residuals(m_base_share),
+    resid_base_isolated = residuals(m_base_isolated_ols),
+    resid_base_worse = residuals(m_base_worse)
+  ) %>%
+  select(block_group_geoid, starts_with("resid_"))
+
+bg_test <- bg_sf %>%
+  inner_join(base_resids, by = "block_group_geoid") %>%
+  filter(!st_is_empty(geometry))
+
+# ---- 13c. Build spatial weights matrix ----
+# Queen contiguity: two block groups are neighbors if they share
+# any boundary point.  This is the most common default.
+# zero.policy = TRUE allows block groups with no neighbors
+# (e.g., islands) to remain in the dataset.
+
+nb <- poly2nb(bg_test, queen = TRUE)
+lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
+
+cat("Spatial weights summary:\n")
+print(summary(nb))
+
+# ---- 13d. Moran's I tests on baseline model residuals ----
+
+cat("\n=== Moran's I: Baseline fragile share (OLS) ===\n")
+mi_fragile <- moran.test(bg_test$resid_base_fragile, lw,
+                         zero.policy = TRUE)
+print(mi_fragile)
+
+cat("\n=== Moran's I: Baseline isolated share (OLS) ===\n")
+mi_isolated <- moran.test(bg_test$resid_base_isolated, lw,
+                          zero.policy = TRUE)
+print(mi_isolated)
+
+cat("\n=== Moran's I: Baseline fragile-or-worse share (OLS) ===\n")
+mi_worse <- moran.test(bg_test$resid_base_worse, lw,
+                       zero.policy = TRUE)
+print(mi_worse)
+
+# ---- 13e. Panel model residuals (pick one scenario to test) ----
+# Moran's I is a cross-sectional test, so we extract residuals
+# from one SLR scenario at a time.  3 ft is a reasonable middle
+# scenario to diagnose.
+
+# Get the row indices in trans_dat that correspond to slr_ft == 3
+scenario_3_idx <- which(trans_dat$slr_ft == 3)
+
+# Extract residuals from the full trans_dat model at those rows
+panel_resids_3ft <- trans_dat %>%
+  filter(slr_ft == 3) %>%
+  mutate(
+    resid_loss_share = residuals(m_loss_share)[scenario_3_idx]
+  ) %>%
+  select(block_group_geoid, resid_loss_share)
+
+bg_test_panel <- bg_sf %>%
+  inner_join(panel_resids_3ft, by = "block_group_geoid") %>%
+  filter(!st_is_empty(geometry))
+
+# Rebuild weights for this subset (may differ slightly if some
+# BGs drop out of the panel)
+nb_panel <- poly2nb(bg_test_panel, queen = TRUE)
+lw_panel <- nb2listw(nb_panel, style = "W", zero.policy = TRUE)
+
+cat("\n=== Moran's I: Lost redundancy share at 3 ft SLR ===\n")
+mi_loss_3ft <- moran.test(bg_test_panel$resid_loss_share, lw_panel,
+                          zero.policy = TRUE)
+print(mi_loss_3ft)
+
+# ---- 13f. Summary for paper ----
+cat("\n========================================\n")
+cat("SUMMARY FOR FOOTNOTE / METHODS SECTION\n")
+cat("========================================\n")
+cat(sprintf(
+  "Baseline fragile:      Moran's I = %.4f, p = %.2e\n",
+  mi_fragile$estimate["Moran I statistic"],
+  mi_fragile$p.value
+))
+cat(sprintf(
+  "Baseline isolated:     Moran's I = %.4f, p = %.2e\n",
+  mi_isolated$estimate["Moran I statistic"],
+  mi_isolated$p.value
+))
+cat(sprintf(
+  "Baseline frag/worse:   Moran's I = %.4f, p = %.2e\n",
+  mi_worse$estimate["Moran I statistic"],
+  mi_worse$p.value
+))
+cat(sprintf(
+  "Lost redundancy (3ft): Moran's I = %.4f, p = %.2e\n",
+  mi_loss_3ft$estimate["Moran I statistic"],
+  mi_loss_3ft$p.value
+))

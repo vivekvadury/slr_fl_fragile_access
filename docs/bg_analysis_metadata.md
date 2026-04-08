@@ -16,7 +16,7 @@ Generated from the saved dataset and source scripts on 2026-04-07.
   transition fields.
 - Block-group access measures are unweighted block-count aggregates. A block
   group with many small blocks and a block group with a few large blocks are not
-  population-weighted unless you add weights downstream.
+  population-weighted unless you add weights downstream. **In other words, the block-group outcomes treat each census block as one equal unit, not each person as one equal unit.**
 
 ## Access-Model Assumptions
 
@@ -128,6 +128,6 @@ block group.
 | `pct_hispanic` | Share of race/ethnicity total population that is Hispanic or Latino. | `B03002_012E / B03002_001E`. This is an ACS estimate ratio. |
 | `pct_nonwhite` | Share of population that is not non-Hispanic White alone. | `1.0 - pct_white_nh`. This includes Hispanic residents and all non-Hispanic race categories other than White alone. |
 | `renter_share` | Share of occupied housing units that are renter occupied. | `B25003_003E / B25003_001E`. The denominator is occupied housing units, not people or all housing units. |
-| `poverty_rate` | Intended ACS poverty share for the block group. | `B17001_002E / B17001_001E`. In the current South Florida block-group ACS pull, both the numerator and denominator are missing for all rows, so this field is empty throughout the saved dataset. Use a tract-level poverty merge or another available proxy before including poverty in regressions. |
+| `poverty_rate` | Intended ACS poverty share for the block group. | `B17001_002E / B17001_001E`. In the current South Florida block-group ACS pull, both the numerator and denominator are missing for all rows, so this field is empty throughout the saved dataset. To include in vulnerability analysis, a tract-level poverty merge or another available proxy before including poverty in regressions. |
 | `log_median_income` | Natural log of median household income. | `np.log(median_income.clip(lower=1))`. Values below 1 would be clipped to 1 before logging. Missing median income remains missing. |
 
