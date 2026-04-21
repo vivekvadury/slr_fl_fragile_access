@@ -81,7 +81,7 @@ dat2 <- dat %>%
   ) %>%
   mutate(
     across(
-      c(pct_black_nh, pct_hispanic, renter_share, log_median_income, median_age),
+      c(pct_black_nh, pct_hispanic, renter_share, log_median_income, pct_age_65plus, no_vehicle_share),
       ~ as.numeric(scale(.x)), # Z-scoring for comparability
       .names = "z_{.col}"
     )
@@ -94,7 +94,8 @@ analysis_dat <- dat2 %>%
     z_pct_hispanic,
     z_renter_share,
     z_log_median_income,
-    z_median_age
+    z_pct_age_65plus,
+    z_no_vehicle_share
   )
 
 # ============================================================
@@ -115,7 +116,7 @@ redrisk_dat <- trans_dat %>%
 m_red_to_fragile <- feglm(
   prop_red_to_fragile ~
     z_pct_black_nh + z_pct_hispanic + z_renter_share +
-    z_log_median_income + z_median_age |
+    z_log_median_income + z_pct_age_65plus + z_no_vehicle_share |
     county_name + slr_ft_f,
   data = redrisk_dat,
   family = binomial(),
@@ -126,7 +127,7 @@ m_red_to_fragile <- feglm(
 m_red_to_isolated <- feglm(
   prop_red_to_isolated ~
     z_pct_black_nh + z_pct_hispanic + z_renter_share +
-    z_log_median_income + z_median_age |
+    z_log_median_income + z_pct_age_65plus + z_no_vehicle_share |
     county_name + slr_ft_f,
   data = redrisk_dat,
   family = binomial(),
@@ -137,7 +138,7 @@ m_red_to_isolated <- feglm(
 m_red_to_inundated <- feglm(
   prop_red_to_inundated ~
     z_pct_black_nh + z_pct_hispanic + z_renter_share +
-    z_log_median_income + z_median_age |
+    z_log_median_income + z_pct_age_65plus + z_no_vehicle_share |
     county_name + slr_ft_f,
   data = redrisk_dat,
   family = binomial(),
@@ -149,7 +150,7 @@ m_red_to_inundated <- feglm(
 m_red_to_worse <- feglm(
   prop_red_to_worse ~
     z_pct_black_nh + z_pct_hispanic + z_renter_share +
-    z_log_median_income + z_median_age |
+    z_log_median_income + z_pct_age_65plus + z_no_vehicle_share |
     county_name + slr_ft_f,
   data = redrisk_dat,
   family = binomial(),
@@ -169,7 +170,8 @@ etable(
     z_pct_hispanic = "Hispanic share (z)",
     z_renter_share = "Renter share (z)",
     z_log_median_income = "Log median income (z)",
-    z_median_age = "Median age (z)"
+    z_pct_age_65plus = "Age 65+ share (z)",
+    z_no_vehicle_share = "No-vehicle hh share (z)"
   ),
   fitstat = ~ n + ll,
   digits = 3
@@ -191,7 +193,7 @@ fragrisk_dat <- trans_dat  %>%
 m_fragile_to_worse <- feglm(
   prop_fragile_to_worse ~
     z_pct_black_nh + z_pct_hispanic + z_renter_share +
-    z_log_median_income + z_median_age |
+    z_log_median_income + z_pct_age_65plus + z_no_vehicle_share |
     county_name + slr_ft_f,
   data = fragrisk_dat,
   family = binomial(),
@@ -202,7 +204,7 @@ m_fragile_to_worse <- feglm(
 m_fragile_to_isolated <- feglm(
   prop_fragile_to_isolated ~
     z_pct_black_nh + z_pct_hispanic + z_renter_share +
-    z_log_median_income + z_median_age |
+    z_log_median_income + z_pct_age_65plus + z_no_vehicle_share |
     county_name + slr_ft_f,
   data = fragrisk_dat,
   family = binomial(),
@@ -213,7 +215,7 @@ m_fragile_to_isolated <- feglm(
 m_fragile_to_inundated <- feglm(
   prop_fragile_to_inundated ~
     z_pct_black_nh + z_pct_hispanic + z_renter_share +
-    z_log_median_income + z_median_age |
+    z_log_median_income + z_pct_age_65plus + z_no_vehicle_share |
     county_name + slr_ft_f,
   data = fragrisk_dat,
   family = binomial(),
@@ -236,7 +238,8 @@ etable(
     z_pct_hispanic = "Hispanic share (z)",
     z_renter_share = "Renter share (z)",
     z_log_median_income = "Log median income (z)",
-    z_median_age = "Median age (z)"
+    z_pct_age_65plus = "Age 65+ share (z)",
+    z_no_vehicle_share = "No-vehicle hh share (z)"
   ),
   fitstat = ~ n + ll,
   digits = 3
@@ -244,39 +247,15 @@ etable(
   )
 
 
-# Looking at the last transition!
-isolrisk_dat <- trans_dat %>%
-  filter(baseline_isolated_n > 0) %>%
-  mutate(
-    prop_isolated_to_inundated =
-      baseline_isolated_to_inundated / baseline_isolated_n
-  )
-
-
-m_isolated_to_inundated <- feglm(
-  prop_isolated_to_inundated ~
-    z_pct_black_nh +
-    z_pct_hispanic +
-    z_renter_share +
-    z_log_median_income +
-    z_median_age |
-    county_name + slr_ft_f,
-  data = isolrisk_dat,
-  family = binomial(),
-  weights = ~ baseline_isolated_n,
-  vcov = ~ block_group_geoid
-)
 
 etable(
   m_fragile_to_isolated,
   m_fragile_to_inundated,
   m_fragile_to_worse,
-  m_isolated_to_inundated,
   headers = c(
     "Fragile → Isolated",
     "Fragile → Inundated",
-    "Fragile → Worse",
-    "Isolated → Inundated"
+    "Fragile → Worse"
     
   ), 
   
@@ -285,7 +264,8 @@ etable(
     z_pct_hispanic = "Hispanic share (z)",
     z_renter_share = "Renter share (z)",
     z_log_median_income = "Log median income (z)",
-    z_median_age = "Median age (z)"
+    z_pct_age_65plus = "Age 65+ share (z)",
+    z_no_vehicle_share = "No-vehicle hh share (z)"
   ),
   fitstat = ~ n + ll,
   digits = 3
@@ -304,7 +284,6 @@ etable(
   m_fragile_to_isolated,
   m_fragile_to_inundated,
   m_fragile_to_worse,
-  m_isolated_to_inundated,
   headers = c(
     "Redundant → Fragile", 
     "Redundant → Isolated", 
@@ -312,8 +291,7 @@ etable(
     "Redundant → Worse",
     "Fragile → Isolated",
     "Fragile → Inundated",
-    "Fragile → Worse",
-    "Isolated → Inundated"
+    "Fragile → Worse"
     
   ), 
   
@@ -322,7 +300,8 @@ etable(
     z_pct_hispanic = "Hispanic share (z)",
     z_renter_share = "Renter share (z)",
     z_log_median_income = "Log median income (z)",
-    z_median_age = "Median age (z)"
+    z_pct_age_65plus = "Age 65+ share (z)",
+    z_no_vehicle_share = "No-vehicle hh share (z)"
   ),
   fitstat = ~ n + ll,
   digits = 3
@@ -338,7 +317,7 @@ detour_dat <- trans_dat %>%
 m_detour <- feols(
   log_detour ~
     z_pct_black_nh + z_pct_hispanic + z_renter_share +
-    z_log_median_income + z_median_age |
+    z_log_median_income + z_pct_age_65plus + z_no_vehicle_share |
     county_name + slr_ft_f,
   data = detour_dat,
   weights = ~ total_blocks,
@@ -355,7 +334,7 @@ hist(detour_dat$log_detour) # There is not much variation
 m_loss_interact <- feols(
   share_lost_redundancy ~
     (z_pct_black_nh + z_pct_hispanic + z_renter_share +
-       z_log_median_income + z_median_age) * i(slr_ft, ref = 1) |
+       z_log_median_income + z_pct_age_65plus + z_no_vehicle_share) * i(slr_ft, ref = 1) |
     county_name,
   data = trans_dat,
   weights = ~ total_blocks,
@@ -370,7 +349,7 @@ summary(m_loss_interact)
 m_loss_tractfe <- feols(
   share_lost_redundancy ~
     z_pct_black_nh + z_pct_hispanic + z_renter_share +
-    z_log_median_income + z_median_age |
+    z_log_median_income + z_pct_age_65plus + z_no_vehicle_share |
     tract_geoid + slr_ft_f,
   data = trans_dat,
   weights = ~ total_blocks,
@@ -535,10 +514,6 @@ ame_fragile_to_worse <- avg_slopes(
   vcov = FALSE
 )
 
-ame_isolated_to_inundated <- avg_slopes(
-  m_isolated_to_inundated,
-  vcov = FALSE
-)
 
 ame_red_to_fragile_boot <- bootstrap_avg_slopes(
   m_red_to_fragile,
@@ -589,12 +564,6 @@ ame_fragile_to_worse_boot <- bootstrap_avg_slopes(
   seed = AME_BOOT_SEED + 7L
 )
 
-ame_isolated_to_inundated_boot <- bootstrap_avg_slopes(
-  m_isolated_to_inundated,
-  isolrisk_dat,
-  label = "Isolated -> Inundated",
-  seed = AME_BOOT_SEED + 8L
-)
 
 ame_red_to_fragile
 ame_red_to_isolated
@@ -603,7 +572,6 @@ ame_red_to_inundated
 ame_fragile_to_isolated
 ame_fragile_to_inundated
 ame_fragile_to_worse
-ame_isolated_to_inundated
 
 ame_red_to_fragile_boot
 ame_red_to_isolated_boot
@@ -612,7 +580,6 @@ ame_red_to_inundated_boot
 ame_fragile_to_isolated_boot
 ame_fragile_to_inundated_boot
 ame_fragile_to_worse_boot
-ame_isolated_to_inundated_boot
 
 # ============================================================
 # 11. Export bootstrapped AMEs to Excel
@@ -622,12 +589,11 @@ library(openxlsx)
 ame_boot_combined <- bind_rows(
   ame_red_to_fragile_boot      %>% mutate(transition = "Redundant → Fragile"),
   ame_red_to_isolated_boot     %>% mutate(transition = "Redundant → Isolated"),
-  ame_red_to_worse_boot        %>% mutate(transition = "Redundant → Worse"),
   ame_red_to_inundated_boot    %>% mutate(transition = "Redundant → Inundated"),
+  ame_red_to_worse_boot        %>% mutate(transition = "Redundant → Worse"),
   ame_fragile_to_isolated_boot %>% mutate(transition = "Fragile → Isolated"),
   ame_fragile_to_inundated_boot %>% mutate(transition = "Fragile → Inundated"),
   ame_fragile_to_worse_boot    %>% mutate(transition = "Fragile → Worse"),
-  ame_isolated_to_inundated_boot %>% mutate(transition = "Isolated → Inundated")
 ) %>%
   select(transition, term, estimate, std.error, statistic, p.value,
          conf.low, conf.high, conf.level, n_boot, n_boot_fail)
@@ -637,4 +603,237 @@ write.xlsx(
   file = here::here("outputs", "tables", "ame_bootstrap_results.xlsx"),
   overwrite = TRUE
 )
+
+
+# ============================================================
+# 12. Export poster-ready LaTeX table of bootstrapped AMEs
+# ============================================================
+ame_term_labels <- c(
+  z_pct_black_nh = "Black share (z)",
+  z_pct_hispanic = "Hispanic share (z)",
+  z_renter_share = "Renter share (z)",
+  z_log_median_income = "Log median income (z)",
+  z_pct_age_65plus = "Age 65+ share (z)",
+  z_no_vehicle_share = "No-vehicle hh share (z)"
+)
+
+ame_transition_order <- c(
+  "Redundant → Fragile",
+  "Redundant → Isolated",
+  "Redundant → Inundated",
+  "Redundant → Worse",
+  "Fragile → Isolated",
+  "Fragile → Inundated",
+  "Fragile → Worse"
+)
+
+ame_transition_headers <- c(
+  "Redundant → Fragile" = "Red. $\\to$ Frag.",
+  "Redundant → Isolated" = "Red. $\\to$ Iso.",
+  "Redundant → Inundated" = "Red. $\\to$ Inund.",
+  "Redundant → Worse" = "Red. $\\to$ Worse",
+  "Fragile → Isolated" = "Frag. $\\to$ Iso.",
+  "Fragile → Inundated" = "Frag. $\\to$ Inund.",
+  "Fragile → Worse" = "Frag. $\\to$ Worse"
+)
+
+ame_sig_stars <- function(p_value) {
+  case_when(
+    is.na(p_value) ~ "",
+    p_value < 0.001 ~ "***",
+    p_value < 0.01 ~ "**",
+    p_value < 0.05 ~ "*",
+    TRUE ~ ""
+  )
+}
+
+fmt_ame_estimate <- function(estimate, p_value, digits = 3) {
+  ifelse(
+    is.na(estimate),
+    "",
+    paste0(formatC(estimate, digits = digits, format = "f"), ame_sig_stars(p_value))
+  )
+}
+
+fmt_ame_se <- function(std_error, digits = 3) {
+  ifelse(
+    is.na(std_error),
+    "",
+    paste0("(", formatC(std_error, digits = digits, format = "f"), ")")
+  )
+}
+
+empty_transition_cells <- as.list(rep("", length(ame_transition_order)))
+names(empty_transition_cells) <- ame_transition_order
+
+ame_boot_poster_long <- ame_boot_combined %>%
+  filter(
+    term %in% names(ame_term_labels),
+    transition %in% ame_transition_order
+  ) %>%
+  mutate(
+    term = factor(term, levels = names(ame_term_labels)),
+    transition = factor(transition, levels = ame_transition_order),
+    estimate_cell = fmt_ame_estimate(estimate, p.value),
+    se_cell = fmt_ame_se(std.error)
+  ) %>%
+  arrange(term, transition)
+
+ame_est_wide <- ame_boot_poster_long %>%
+  select(term, transition, estimate_cell) %>%
+  pivot_wider(
+    names_from = transition,
+    values_from = estimate_cell,
+    values_fill = ""
+  )
+
+ame_se_wide <- ame_boot_poster_long %>%
+  select(term, transition, se_cell) %>%
+  pivot_wider(
+    names_from = transition,
+    values_from = se_cell,
+    values_fill = ""
+  )
+
+build_ame_table_rows <- function(term_name) {
+  est_row <- ame_est_wide %>% filter(term == term_name)
+  se_row <- ame_se_wide %>% filter(term == term_name)
+
+  est_cells <- if (nrow(est_row) == 0) {
+    empty_transition_cells
+  } else {
+    as.list(est_row[1, ame_transition_order, drop = FALSE])
+  }
+
+  se_cells <- if (nrow(se_row) == 0) {
+    empty_transition_cells
+  } else {
+    as.list(se_row[1, ame_transition_order, drop = FALSE])
+  }
+
+  bind_rows(
+    tibble(Covariate = unname(ame_term_labels[term_name]), !!!est_cells),
+    tibble(Covariate = "", !!!se_cells)
+  )
+}
+
+ame_poster_table <- purrr::map_dfr(names(ame_term_labels), build_ame_table_rows)
+colnames(ame_poster_table) <- c(
+  "Covariate",
+  unname(ame_transition_headers[ame_transition_order])
+)
+ame_poster_table[is.na(ame_poster_table)] <- ""
+
+ame_term_labels_compact <- c(
+  z_pct_black_nh = "Black (z)",
+  z_pct_hispanic = "Hispanic (z)",
+  z_renter_share = "Renter (z)",
+  z_log_median_income = "Log income (z)",
+  z_pct_age_65plus = "Age 65+ (z)",
+  z_no_vehicle_share = "No vehicle (z)"
+)
+
+ame_transition_headers_compact <- c(
+  "Redundant → Fragile" = "R$\\to$F",
+  "Redundant → Isolated" = "R$\\to$I",
+  "Redundant → Inundated" = "R$\\to$In",
+  "Redundant → Worse" = "R$\\to$W",
+  "Fragile → Isolated" = "F$\\to$I",
+  "Fragile → Inundated" = "F$\\to$In",
+  "Fragile → Worse" = "F$\\to$W"
+)
+
+ame_poster_table_compact <- ame_poster_table
+ame_poster_table_compact$Covariate[ame_poster_table_compact$Covariate != ""] <- unname(ame_term_labels_compact)
+colnames(ame_poster_table_compact) <- c(
+  "Covariate",
+  unname(ame_transition_headers_compact[ame_transition_order])
+)
+
+latex_row <- function(x) {
+  paste0(paste(x, collapse = " & "), " \\\\")
+}
+
+ame_latex_lines <- c(
+  "% Auto-generated by scripts/05_regressions_4_poster.R",
+  "\\begin{table}[!htbp]",
+  "\\centering",
+  "\\scriptsize",
+  "\\setlength{\\tabcolsep}{4pt}",
+  "\\caption{Average marginal effects for all transition probabilities}",
+  "\\label{tab:ame_transition_probabilities}",
+  paste0("\\begin{tabular}{l", paste(rep("c", length(ame_transition_order)), collapse = ""), "}"),
+  "\\hline",
+  latex_row(colnames(ame_poster_table)),
+  "\\hline"
+)
+
+for (i in seq_len(nrow(ame_poster_table))) {
+  ame_latex_lines <- c(
+    ame_latex_lines,
+    latex_row(unlist(ame_poster_table[i, ], use.names = FALSE))
+  )
+}
+
+ame_latex_lines <- c(
+  ame_latex_lines,
+  "\\hline",
+  paste0(
+    "\\multicolumn{", ncol(ame_poster_table),
+    "}{p{0.95\\linewidth}}{\\footnotesize Notes: Entries are average marginal effects. ",
+    "Bootstrapped standard errors are in parentheses. Significance stars are based on ",
+    "bootstrapped p-values: * $p<0.05$, ** $p<0.01$, *** $p<0.001$. Abbreviations: W = Worse.}\\"
+  ),
+  "\\hline",
+  "\\end{tabular}",
+  "\\end{table}"
+)
+
+ame_latex_path <- here::here("outputs", "tables", "ame_bootstrap_transition_table.tex")
+writeLines(ame_latex_lines, con = ame_latex_path)
+
+message("Saved LaTeX table to: ", ame_latex_path)
+
+ame_compact_tabular_lines <- c(
+  paste0("\\begin{tabular}{l", paste(rep("c", length(ame_transition_order)), collapse = ""), "}"),
+  "\\hline",
+  latex_row(colnames(ame_poster_table_compact)),
+  "\\hline"
+)
+
+for (i in seq_len(nrow(ame_poster_table_compact))) {
+  ame_compact_tabular_lines <- c(
+    ame_compact_tabular_lines,
+    latex_row(unlist(ame_poster_table_compact[i, ], use.names = FALSE))
+  )
+}
+
+ame_compact_tabular_lines <- c(
+  ame_compact_tabular_lines,
+  "\\hline",
+  "\\end{tabular}"
+)
+
+ame_beamer_lines <- c(
+  "% Auto-generated by scripts/05_regressions_4_poster.R",
+  "% Poster-column version: paste inside a beamerposter block in Overleaf.",
+  "\\centering",
+  "\\scriptsize",
+  "\\setlength{\\tabcolsep}{2.5pt}",
+  "\\renewcommand{\\arraystretch}{1.05}",
+  "\\resizebox{\\columnwidth}{!}{%",
+  ame_compact_tabular_lines,
+  "}",
+  "\\vspace{0.35em}",
+  paste0(
+    "\\parbox{\\columnwidth}{\\footnotesize Notes: Entries are AMEs. ",
+    "Bootstrapped standard errors are in parentheses. ",
+    "Stars use bootstrapped p-values: * $p<0.05$, ** $p<0.01$, *** $p<0.001$. Abbreviations: R = Redundant, F = Fragile, In = Inundated, W = Worse.}"
+  )
+)
+
+ame_beamer_path <- here::here("outputs", "tables", "ame_bootstrap_transition_table_beamerposter.tex")
+writeLines(ame_beamer_lines, con = ame_beamer_path)
+
+message("Saved beamerposter LaTeX table to: ", ame_beamer_path)
 

@@ -123,6 +123,10 @@ block group.
 | `total_pop` | ACS total population estimate for the block group. | `B01001_001E`, converted to numeric. Census suppression code `-666666666` is recoded to missing. |
 | `median_income` | ACS median household income estimate for the block group. | `B19013_001E`, converted to numeric and suppression-recoded to missing. Some block groups can be missing because of ACS suppression or data availability. |
 | `median_age` | ACS median age estimate for the block group. | `B01002_001E`, converted to numeric and suppression-recoded to missing. |
+| `hh_no_vehicle` | ACS estimated number of occupied households with no vehicle available. | Sum of `B25044_003E` (owner-occupied, no vehicle) and `B25044_010E` (renter-occupied, no vehicle). This is a household count, not a person count. |
+| `no_vehicle_share` | Share of occupied households with no vehicle available. | `hh_no_vehicle / B25044_001E`, where `B25044_001E` is the ACS occupied-household denominator in the vehicle-availability table. This should be interpreted against households, not total population. |
+| `pop_age_65plus` | ACS estimated number of residents age 65 and older. | Sum of `B01001_020E`-`B01001_025E` (male 65+) and `B01001_044E`-`B01001_049E` (female 65+). Missing is preserved only when all component fields are missing. |
+| `pct_age_65plus` | Share of residents age 65 and older. | `pop_age_65plus / total_pop`, using `B01001_001E` as the denominator. |
 | `pct_white_nh` | Share of race/ethnicity total population that is non-Hispanic White alone. | `B03002_003E / B03002_001E`. This is an ACS estimate ratio; no ACS margin-of-error propagation is included in the current dataset. |
 | `pct_black_nh` | Share of race/ethnicity total population that is non-Hispanic Black alone. | `B03002_004E / B03002_001E`. This is an ACS estimate ratio. |
 | `pct_hispanic` | Share of race/ethnicity total population that is Hispanic or Latino. | `B03002_012E / B03002_001E`. This is an ACS estimate ratio. |
@@ -130,4 +134,3 @@ block group.
 | `renter_share` | Share of occupied housing units that are renter occupied. | `B25003_003E / B25003_001E`. The denominator is occupied housing units, not people or all housing units. |
 | `poverty_rate` | Intended ACS poverty share for the block group. | `B17001_002E / B17001_001E`. In the current South Florida block-group ACS pull, both the numerator and denominator are missing for all rows, so this field is empty throughout the saved dataset. To include in vulnerability analysis, a tract-level poverty merge or another available proxy before including poverty in regressions. |
 | `log_median_income` | Natural log of median household income. | `np.log(median_income.clip(lower=1))`. Values below 1 would be clipped to 1 before logging. Missing median income remains missing. |
-
