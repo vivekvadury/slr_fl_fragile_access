@@ -87,7 +87,7 @@ def load_long_with_population() -> pd.DataFrame:
         raise ValueError(f"{missing:,} block-scenario rows are missing POP20 after merge.")
     return merged
 
-
+# Build tables with population-weighted summaries of transitions by SLR scenario, then plot figures decomposing the population in each transition category and showing the "threshold ladder" of when blocks first become fragile vs. severe.
 def build_transition_population_table(df: pd.DataFrame) -> pd.DataFrame:
     rows = []
     scen = df.loc[df["slr_ft"].isin(SLR_LEVELS)].copy()

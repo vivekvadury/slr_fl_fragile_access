@@ -750,6 +750,89 @@ colnames(ame_poster_table_compact) <- c(
   unname(ame_transition_headers_compact[ame_transition_order])
 )
 
+ame_diagnostic_specs <- list(
+  list(
+    model = m_red_to_fragile,
+    data = redrisk_dat,
+    outcome = "prop_red_to_fragile",
+    weights = "baseline_redundant_n"
+  ),
+  list(
+    model = m_red_to_isolated,
+    data = redrisk_dat,
+    outcome = "prop_red_to_isolated",
+    weights = "baseline_redundant_n"
+  ),
+  list(
+    model = m_red_to_inundated,
+    data = redrisk_dat,
+    outcome = "prop_red_to_inundated",
+    weights = "baseline_redundant_n"
+  ),
+  list(
+    model = m_red_to_worse,
+    data = redrisk_dat,
+    outcome = "prop_red_to_worse",
+    weights = "baseline_redundant_n"
+  ),
+  list(
+    model = m_fragile_to_isolated,
+    data = fragrisk_dat,
+    outcome = "prop_fragile_to_isolated",
+    weights = "baseline_fragile_n"
+  ),
+  list(
+    model = m_fragile_to_inundated,
+    data = fragrisk_dat,
+    outcome = "prop_fragile_to_inundated",
+    weights = "baseline_fragile_n"
+  ),
+  list(
+    model = m_fragile_to_worse,
+    data = fragrisk_dat,
+    outcome = "prop_fragile_to_worse",
+    weights = "baseline_fragile_n"
+  )
+)
+names(ame_diagnostic_specs) <- ame_transition_order
+
+get_model_data <- function(spec) {
+  spec$data[obs(spec$model), , drop = FALSE]
+}
+
+fmt_integer <- function(x) {
+  formatC(x, format = "d", big.mark = ",")
+}
+
+ame_diagnostic_values <- tibble(
+  Covariate = c(
+    "Mean of outcome",
+    "Observations",
+    "Block groups",
+    "County FE",
+    "SLR-scenario FE"
+  )
+)
+
+for (transition in ame_transition_order) {
+  spec <- ame_diagnostic_specs[[transition]]
+  model_data <- get_model_data(spec)
+  ame_diagnostic_values[[transition]] <- c(
+    formatC(
+      weighted.mean(model_data[[spec$outcome]], model_data[[spec$weights]], na.rm = TRUE),
+      digits = 3,
+      format = "f"
+    ),
+    fmt_integer(nobs(spec$model)),
+    fmt_integer(n_distinct(model_data$block_group_geoid)),
+    "Yes",
+    "Yes"
+  )
+}
+
+ame_diagnostic_rows <- ame_diagnostic_values
+colnames(ame_diagnostic_rows) <- colnames(ame_poster_table)
+
 latex_row <- function(x) {
   paste0(paste(x, collapse = " & "), " \\\\")
 }
@@ -775,14 +858,27 @@ for (i in seq_len(nrow(ame_poster_table))) {
   )
 }
 
+print(ame_diagnostic_rows, width = Inf)
+
+ame_latex_lines <- c(ame_latex_lines, "\\hline")
+
+for (i in seq_len(nrow(ame_diagnostic_rows))) {
+  ame_latex_lines <- c(
+    ame_latex_lines,
+    latex_row(unlist(ame_diagnostic_rows[i, ], use.names = FALSE))
+  )
+}
+
 ame_latex_lines <- c(
   ame_latex_lines,
   "\\hline",
   paste0(
     "\\multicolumn{", ncol(ame_poster_table),
     "}{p{0.95\\linewidth}}{\\footnotesize Notes: Entries are average marginal effects. ",
-    "Bootstrapped standard errors are in parentheses. Significance stars are based on ",
-    "bootstrapped p-values: * $p<0.05$, ** $p<0.01$, *** $p<0.001$. Abbreviations: W = Worse.}\\"
+    "Standard errors are from a ", AME_BOOT_REPS,
+    "-replication cluster bootstrap by block group. County and SLR-scenario fixed effects are included in all models. ",
+    "Significance stars are based on ",
+    "bootstrapped p-values: * $p<0.05$, ** $p<0.01$, *** $p<0.001$. Abbreviations: W = Worse.}\\\\"
   ),
   "\\hline",
   "\\end{tabular}",
