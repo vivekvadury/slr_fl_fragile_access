@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Diagnose graph connected-component structure for the current Adroit access workflow.
+Diagnose graph connected-component structure for the current access workflow.
 
-This script rebuilds the current road graph used by `01_bg_access_flags_adroit.py`
+This script rebuilds the current road graph used by `02_access_flags.py`
 and quantifies connected-component structure for:
 - the raw drivable graph
 - the 0 ft dry graph after removing edges intersecting `FL_SE_slr_0_0ft`
@@ -26,7 +26,7 @@ from shapely.geometry import box
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-BASE_SCRIPT_PATH = PROJECT_ROOT / "scripts" / "01_bg_access_flags_adroit.py"
+BASE_SCRIPT_PATH = PROJECT_ROOT / "scripts" / "02_access_flags.py"
 
 RESULT_DTYPE = {
     "block_geoid": "string",
@@ -59,7 +59,7 @@ def log(message: str) -> None:
 
 
 def load_base_module():
-    spec = importlib.util.spec_from_file_location("bg_access_flags_adroit_base", BASE_SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location("access_flags_base", BASE_SCRIPT_PATH)
     if spec is None or spec.loader is None:
         raise ImportError(f"Could not load base script from {BASE_SCRIPT_PATH}")
     module = importlib.util.module_from_spec(spec)

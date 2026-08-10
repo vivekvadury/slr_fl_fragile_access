@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 """
-Exploratory block-level centroid access flags for the South Florida tri-county
-study area across multiple sea-level-rise (SLR) scenarios.
-
-This script is intentionally a first-pass exploratory workflow.
+Compute block-level centroid access states for the South Florida tri-county
+study area across NOAA sea-level-rise (SLR) scenarios.
 
 What it does
 - Builds a simple undirected drivable road graph from the retained tri-county
@@ -13,23 +11,19 @@ What it does
 - Snaps block centroids and services to the retained network.
 - Creates one baseline graph and one "dry" graph per requested NOAA SLR layer by
   removing road segments that intersect the inundation polygon.
-- Computes centroid-based exploratory access diagnostics in long format, with
-  one row per block x SLR level.
+- Classifies each block as inundated, isolated, fragile, or redundant in long
+  format, with one row per block x SLR level.
 
-What it does NOT do
-- It does not replicate a final paper-ready block accessibility workflow.
+Important interpretation notes
 - It does not model directed traffic rules; the graph is intentionally
-  undirected for this first pass.
+  undirected.
 - It does not split roads at polygon boundaries or handle bridges/tunnels; a
   road segment is treated as flooded if the segment geometry intersects the SLR
   inundation polygon.
-- It does not estimate final paper-ready exposure metrics or run regressions.
-
-Important interpretation note
-- These are block-centroid exploratory measures, not final replication-
-  equivalent access variables.
-- Flooded centroids are treated as inaccessible origins for the exploratory
-  access flags even if a snapped network node would otherwise remain connected.
+- Flooded centroids are treated as inaccessible origins even if a snapped
+  network node would otherwise remain connected.
+- Service access currently combines primary schools and fire stations. See
+  docs/manuscript_feedback_todo.md for the planned service-specific extension.
 
 Required inputs
 - data/processed/census/blocks/fl_tricounty_blocks_2020.gpkg
@@ -221,7 +215,7 @@ def read_vector(
 def list_layers(path: Path) -> set[str]:
     return {layer_name for layer_name, _ in pyogrio.list_layers(path)}
 
-# Transforms CRS84 (Long/Lat) to projected CRS if needed
+
 def maybe_to_projected(gdf: gpd.GeoDataFrame, crs: str = PROJECTED_CRS) -> gpd.GeoDataFrame:
     if gdf.crs is None:
         raise ValueError("Input layer has no CRS; cannot continue safely.")
@@ -312,7 +306,6 @@ def prepare_blocks_layer(blocks: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     return output
 
-# What does the margin of error?
 def build_study_area_boundary(
     bounds: tuple[float, float, float, float],
     source_crs,
@@ -437,19 +430,8 @@ def load_roads() -> gpd.GeoDataFrame:
     roads["osm_id"] = roads["osm_id"].astype(str)
     return roads
 
-# Build the road graph from consecutive line vertices rather than collapsing an
-# entire OSM feature to one start-to-end edge. This reduces artificial network
-# fragmentation and should make baseline isolation less sensitive to long road
-# features that contain many interior bends/vertices.
-#
-# Important assumptions that still remain:
-# - We still do not planarize crossings (no edges cross each other). If two lines cross but do not share a
-#   vertex in the source OSM geometry, we do not create an intersection.
-# - We still treat the graph as undirected and ignore turn restrictions.
-# - We still rely on the OSM geometry being correctly noded where real
-#   connectivity exists, and we may still over-connect grade-separated features
-#   if they share the same explicit vertex coordinates.
 def segmentize_roads(roads: gpd.GeoDataFrame) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
+    """Split retained road geometries into consecutive-vertex graph edges."""
     node_lookup: dict[tuple[float, float], int] = {}
     node_records: list[dict[str, object]] = []
     edge_records: list[dict[str, object]] = []
@@ -536,7 +518,6 @@ def build_graph(edges: gpd.GeoDataFrame) -> nx.Graph:
     )
     return graph
 
-# Build a spatial index (k-d tree) for the graph nodes to enable efficient snapping of points (centroids and services) to the nearest node in the graph.
 def build_node_kdtree(nodes: gpd.GeoDataFrame) -> tuple[cKDTree, np.ndarray, np.ndarray]:
     coords = np.column_stack([nodes["x"].to_numpy(), nodes["y"].to_numpy()])
     node_ids = nodes["node_id"].to_numpy()
@@ -576,7 +557,6 @@ def snap_points_to_nodes(
     result = result.join(node_xy, on="node_id")
     return result
 
-# If a service is more than 10 kilometers away from the edge of your road network, it is too far to be considered a viable, everyday essential service for the people living inside the study area.
 def filter_services_by_buffer(
     services: gpd.GeoDataFrame,
     boundary_polygon: gpd.GeoDataFrame,
@@ -599,7 +579,6 @@ def compute_origin_boundary_fields(
         }
     )
 
-# For each connected component in the graph, we determine which nodes belong to that component, count the number of services accessible from that component, check if any node in the component touches the boundary, and count how many nodes in the component have at least one service. This information is stored in dictionaries for later use in access diagnostics.
 def build_component_maps(
     graph: nx.Graph,
     services: pd.DataFrame,
@@ -638,7 +617,6 @@ def build_component_maps(
         component_service_node_counts,
     )
 
-# Calculates the nearest service node and distance for each node in the graph
 def build_nearest_service_lookup(
     graph: nx.Graph,
     services: pd.DataFrame,
@@ -663,7 +641,6 @@ def build_nearest_service_lookup(
         )
     service_nodes = canonical_services["nearest_service_node_id"].astype(int).tolist()
 
-# Calculating the shortest path from each node in the graph to the nearest service node, and storing the distance and path information in a DataFrame for later use in access diagnostics.
     distances, paths = nx.multi_source_dijkstra(graph, service_nodes, weight="weight")
     records: list[dict[str, object]] = []
     service_lookup = canonical_services.set_index("nearest_service_node_id")
@@ -756,9 +733,7 @@ def build_service_node_candidate_map(
             for idx in np.atleast_1d(neighbor_indices[row_index]).tolist()
         ]
     return candidate_map
-# This builds: dry_two_edge_component_lookup, dry_two_edge_component_service_counts
 
-# Computes the local edge connectivity between an origin node and a set of candidate service nodes, with an optional cap on the maximum number of edge-disjoint paths to consider. This function is used to assess the redundancy of access from the origin node to essential services in the graph, which can inform the classification of access flags for block centroids.  
 def capped_local_edge_connectivity(
     graph: nx.Graph,
     origin_node: int,
