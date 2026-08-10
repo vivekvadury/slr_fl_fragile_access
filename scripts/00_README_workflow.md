@@ -2,7 +2,8 @@
 
 This directory now emphasizes the current manuscript workflow for
 sea-level-rise-induced transportation access degradation in South Florida.
-The workflow classifies blocks as redundant, fragile, isolated, or inundated;
+The workflow classifies blocks as redundant, fragile, isolated, inundated, or
+unclassified;
 aggregates block-level transitions to block groups; and estimates grouped
 binomial transition models linked to social vulnerability indicators.
 
@@ -16,16 +17,24 @@ binomial transition models linked to social vulnerability indicators.
 
 2. `02_access_flags.py`
    - Core block-level access-state engine.
-   - Builds the undirected drivable road graph, removes SLR-intersecting road
-     segments by scenario, snaps block centroids and essential services to the
-     graph, and classifies each block x SLR scenario as inundated, isolated,
-     fragile, or redundant.
-   - Main outputs are `block_access_flags_long*.csv` and, when pyarrow is
-     available, `block_access_flags_long*.parquet` under
-     `data/processed/access/edited/`.
-   - Expensive for the full block universe. For a lightweight smoke command,
-     use something like:
-     `python scripts/02_access_flags.py --max-blocks 500 --slr-ft 1 --output-suffix __smoke`.
+   - Builds the undirected drivable road graph; attaches services to
+     redundancy-eligible nodes in the raw graph's largest connected component;
+     snaps within-polygon block origins to the raw LCC; and applies scenario
+     inundation rules.
+   - Keeps every block in the long output. `analysis_eligible` and
+     `exclusion_reason` identify zero-land-area blocks and failed origin snaps.
+   - Main outputs are `block_access_flags_long*.csv` and
+     `block_access_flags_long*.parquet` under a directory named by
+     `--config-name`. Each run also writes `run_manifest.json`, a service-snap
+     audit.
+   - Segmentized roads are cached as GeoParquet by highway-filter hash. Use
+     `--resume` to reuse the raw-graph component/2ecc cache and
+     `--rebuild-cache` to force recomputation.
+   - `--scenarios 0` runs baseline only; the default is all seven scenarios.
+   - Lightweight corrected smoke run:
+     `python scripts/02_access_flags.py --smoke --scenarios 0 --config-name smoke_corrected`.
+   - Published-behavior verification:
+     `python scripts/02_access_flags.py --legacy-mode --scenarios 0 --config-name legacy_0ft`.
 
 3. `02b_diagnose_access_run.py` (diagnostic/QA)
    - Reads a completed access run directory, deduplicates block-scenario rows,
@@ -48,7 +57,7 @@ binomial transition models linked to social vulnerability indicators.
    - Also contains manuscript figure design and map iteration. Notebook figure
      cells were retained intentionally.
 
-6. `04_manuscript_transition_models.R`
+6. `04_transition_models.R`
    - Core manuscript regression/table script.
    - Estimates grouped binomial transition models for:
      - baseline redundant to fragile, isolated, inundated, or worse;
@@ -63,7 +72,7 @@ binomial transition models linked to social vulnerability indicators.
      small value for syntax/runtime smoke checks, but use the manuscript
      default for final table regeneration.
 
-7. `05_manuscript_population_figures.py`
+7. `05_population_figures.py`
    - Population-weighted manuscript table/figure supplement.
    - Joins 2020 Census block population to
      `data/processed/analysis/block_level_long_dataset.csv`.
@@ -76,10 +85,16 @@ binomial transition models linked to social vulnerability indicators.
      notebooks and draft-placeholder code, even though the current manuscript
      may number these figures differently.
 
-8. `07_placeholders_in_draft.ipynb`
+8. `06_placeholders_in_draft.ipynb`
    - Small draft-support notebook that reads existing output tables and prints
      manuscript replacement text for numeric placeholders.
    - Kept because it documents how draft prose numbers were derived.
+
+9. `02e_compare_runs.py` (correction/sensitivity comparison)
+   - Takes legacy and corrected run directories.
+   - Writes per-scenario old-vs-new status matrices, baseline fragile shares
+     for full/populated/eligible universes, and a block-level baseline-change
+     file containing population, county, service-snap, and bridge fields.
 
 ## Exploratory Notebooks
 
@@ -92,23 +107,21 @@ be reviewed explicitly before removal.
 
 - Run commands from the repository root.
 - Python dependencies include `geopandas`, `pyogrio`, `networkx`, `numpy`,
-  `pandas`, `pyproj`, `scipy`, `shapely`, and `matplotlib`.
+  `pandas`, `pyarrow`, `pyproj`, `scipy`, `shapely`, and `matplotlib`.
 - R dependencies include `tidyverse`, `fixest`, `marginaleffects`, and
   `openxlsx`.
 - The full access workflow assumes local access to the NOAA SLR geopackage,
   processed service layers, processed Census geometries, and the retained OSM
   road PBF listed in `02_access_flags.py`.
-- No retained script is clearly cluster-only. The full access run and bootstrap
-  table can be slow locally, but the retained code does not encode a cluster
-  submission workflow.
 
 ## Known Limitations
 
 - The road graph is undirected and does not model one-way restrictions, turn
-  restrictions, congestion, speeds, bridges/tunnels, drainage, or road depth.
+  restrictions, congestion, speeds, drainage, or road depth.
 - Road segments are removed if their geometry intersects a NOAA SLR layer; the
   workflow does not split roads at flood boundaries.
-- Inundation is centroid-based at the block level.
+- Block inundation is origin-point based. The corrected origin geometry is a
+  polygon representative point; legacy centroid behavior remains switchable.
 - Service access currently combines primary schools and fire stations into one
   essential-services layer.
 - Grouped binomial denominators are block counts, while vulnerability variables
@@ -121,6 +134,8 @@ be reviewed explicitly before removal.
 
 - `02b_diagnose_access_run.py`
 - `02c_graph_component_diagnostics.py`
+- `02d_measurement_validity_diagnostics.py`
+- `02e_compare_runs.py`
 
 These scripts validate outputs and graph structure. They do not replace the
 core access run or analysis-dataset construction.
