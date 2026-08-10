@@ -20,21 +20,22 @@ binomial transition models linked to social vulnerability indicators.
    - Builds the undirected drivable road graph; attaches services to
      redundancy-eligible nodes in the raw graph's largest connected component;
      snaps within-polygon block origins to the raw LCC; and applies scenario
-     inundation rules.
+     inundation and physical-bridge rules.
    - Keeps every block in the long output. `analysis_eligible` and
      `exclusion_reason` identify zero-land-area blocks and failed origin snaps.
    - Main outputs are `block_access_flags_long*.csv` and
      `block_access_flags_long*.parquet` under a directory named by
      `--config-name`. Each run also writes `run_manifest.json`, a service-snap
-     audit.
+     audit, and one physical-bridge audit per scenario.
    - Segmentized roads are cached as GeoParquet by highway-filter hash. Use
      `--resume` to reuse the raw-graph component/2ecc cache and
      `--rebuild-cache` to force recomputation.
    - `--scenarios 0` runs baseline only; the default is all seven scenarios.
+     `--bridge-rule` accepts `intersect`, `approach` (default), or `retain`.
    - Lightweight corrected smoke run:
      `python scripts/02_access_flags.py --smoke --scenarios 0 --config-name smoke_corrected`.
    - Published-behavior verification:
-     `python scripts/02_access_flags.py --legacy-mode --scenarios 0 --config-name legacy_0ft`.
+     `python scripts/02_access_flags.py --legacy-mode --bridge-rule intersect --scenarios 0 --config-name legacy_0ft`.
 
 3. `02b_diagnose_access_run.py` (diagnostic/QA)
    - Reads a completed access run directory, deduplicates block-scenario rows,
@@ -96,6 +97,11 @@ binomial transition models linked to social vulnerability indicators.
      for full/populated/eligible universes, and a block-level baseline-change
      file containing population, county, service-snap, and bridge fields.
 
+10. `slurm/run_access_flags.sbatch`
+    - Cluster submission template with TODO resource/module settings.
+    - Places graph caches on scratch and parameterizes configuration name,
+      bridge rule, and scenario list.
+
 ## Exploratory Notebooks
 
 `00_data_exploration.ipynb` is an older exploratory notebook. It remains in
@@ -113,13 +119,16 @@ be reviewed explicitly before removal.
 - The full access workflow assumes local access to the NOAA SLR geopackage,
   processed service layers, processed Census geometries, and the retained OSM
   road PBF listed in `02_access_flags.py`.
+- Full access sweeps are intended for the cluster; use
+  `slurm/run_access_flags.sbatch` after filling its site-specific TODOs.
 
 ## Known Limitations
 
 - The road graph is undirected and does not model one-way restrictions, turn
   restrictions, congestion, speeds, drainage, or road depth.
-- Road segments are removed if their geometry intersects a NOAA SLR layer; the
-  workflow does not split roads at flood boundaries.
+- Ordinary road segments are removed if their geometry intersects a NOAA SLR
+  layer; the workflow does not split roads at flood boundaries. Bridge-like
+  edges use the selected connected-structure rule.
 - Block inundation is origin-point based. The corrected origin geometry is a
   polygon representative point; legacy centroid behavior remains switchable.
 - Service access currently combines primary schools and fire stations into one

@@ -11,17 +11,22 @@ What it does
 - Places block origins inside their polygons and snaps them to the raw graph's
   largest connected component.
 - Creates one baseline graph and one "dry" graph per requested NOAA SLR layer.
+  Ordinary roads retain the geometric-intersection rule; bridge-like roads use
+  a configurable connected-structure rule based on dry landing nodes.
 - Classifies every block as inundated, isolated, fragile, redundant, or
   unclassified, retaining ineligible rows with explicit exclusion flags.
-- Writes a reproducibility manifest, service-snap audit, and cached segmentized
-  graph artifacts under a configuration-specific run directory.
+- Writes a reproducibility manifest, service-snap audit, per-scenario physical-
+  bridge audits, and cached graph artifacts under a configuration-specific run
+  directory.
 
 Important interpretation notes
 - It does not model directed traffic rules; the graph is intentionally
   undirected.
 - It does not split ordinary roads at polygon boundaries; non-bridge-like road
   segments are removed when their geometry intersects the SLR polygon.
-- Road segments are removed when their geometry intersects the SLR polygon.
+- Road bridges are identified from OSM bridge/layer tags and grouped into
+  physical structures. ``--bridge-rule intersect`` restores legacy removal;
+  ``approach`` is the default and ``retain`` is an upper bound.
 - Flooded centroids are treated as inaccessible origins even if a snapped
   network node would otherwise remain connected.
 - Service access currently combines primary schools and fire stations. See
@@ -187,6 +192,8 @@ MAX_EDGE_DISJOINT_PATHS_CAP = 2
 QA_SAMPLE_PER_GROUP = 5
 CACHE_SCHEMA_VERSION = 2
 DEFAULT_CONFIG_NAME = "corrected"
+NEARBY_BRIDGE_DISTANCE_M = 2_000
+BRIDGE_RULES = {"intersect", "approach", "retain"}
 
 # Filtering to drivable highways for analysis.
 DRIVABLE_HIGHWAYS = {
@@ -286,6 +293,12 @@ def parse_args() -> argparse.Namespace:
         help="Clip roads and blocks to the diagnostic SMOKE_BBOX.",
     )
     parser.add_argument(
+        "--bridge-rule",
+        choices=sorted(BRIDGE_RULES),
+        default="approach",
+        help="Physical-bridge handling: legacy intersection, dry-approach rule, or retain-all upper bound.",
+    )
+    parser.add_argument(
         "--legacy-mode",
         action="store_true",
         help="Enable every legacy behavioral switch for published-run verification.",
@@ -340,6 +353,7 @@ def apply_legacy_mode(args: argparse.Namespace) -> argparse.Namespace:
     args.legacy_origin_failure_status = True
     args.legacy_collocated_rule = True
     args.legacy_centroid_inundation_join = True
+    args.bridge_rule = "intersect"
     return args
 
 
@@ -952,6 +966,235 @@ def build_graph(edges: gpd.GeoDataFrame) -> nx.Graph:
     )
     return graph
 
+
+def query_intersecting_positions(gdf: gpd.GeoDataFrame, geometries) -> np.ndarray:
+    if geometries is None or len(geometries) == 0:
+        return np.asarray([], dtype=int)
+    query_matches = gdf.sindex.query(geometries, predicate="intersects")
+    if isinstance(query_matches, tuple):
+        positions = np.asarray(query_matches[1], dtype=int)
+    elif hasattr(query_matches, "shape") and len(query_matches.shape) == 2:
+        positions = np.asarray(query_matches[1], dtype=int)
+    else:
+        positions = np.asarray(query_matches, dtype=int)
+    return np.unique(positions)
+
+
+def build_bridge_structures(
+    edges: gpd.GeoDataFrame,
+) -> tuple[gpd.GeoDataFrame, pd.DataFrame, dict[int, set[int]]]:
+    output = edges.copy()
+    output["structure_id"] = pd.Series(pd.NA, index=output.index, dtype="Int64")
+    bridge_edges = output.loc[output["bridge_like"]].copy()
+    if bridge_edges.empty:
+        return output, pd.DataFrame(), {}
+
+    bridge_graph = nx.Graph()
+    bridge_graph.add_edges_from(
+        (int(row.u), int(row.v)) for row in bridge_edges.itertuples(index=False)
+    )
+    non_bridge_edges = output.loc[~output["bridge_like"]]
+    ordinary_incident_nodes = set(
+        np.concatenate(
+            [
+                non_bridge_edges["u"].to_numpy(dtype=int),
+                non_bridge_edges["v"].to_numpy(dtype=int),
+            ]
+        ).tolist()
+    )
+
+    node_to_structure: dict[int, int] = {}
+    landing_nodes: dict[int, set[int]] = {}
+    for structure_id, structure_nodes in enumerate(nx.connected_components(bridge_graph)):
+        structure_id = int(structure_id)
+        for node_id in structure_nodes:
+            node_to_structure[int(node_id)] = structure_id
+        landing_nodes[structure_id] = {
+            int(node_id)
+            for node_id in structure_nodes
+            if int(node_id) in ordinary_incident_nodes
+        }
+
+    bridge_structure_ids = bridge_edges["u"].map(node_to_structure).astype(int)
+    output.loc[bridge_edges.index, "structure_id"] = bridge_structure_ids.to_numpy()
+
+    structure_records = []
+    for structure_id, group in output.loc[output["bridge_like"]].groupby(
+        "structure_id", sort=True
+    ):
+        structure_id = int(structure_id)
+        landings = landing_nodes.get(structure_id, set())
+        structure_records.append(
+            {
+                "structure_id": structure_id,
+                "landing_node_count": int(len(landings)),
+                "landing_node_ids": ";".join(str(node_id) for node_id in sorted(landings)),
+                "total_length_m": float(group["length_m"].sum()),
+                "highway_classes": "|".join(
+                    sorted(group["highway"].dropna().astype(str).unique())
+                ),
+                "n_bridge_edges": int(len(group)),
+                "n_osm_ways": int(group["osm_id"].nunique()),
+            }
+        )
+    structures = pd.DataFrame.from_records(structure_records)
+    return output, structures, landing_nodes
+
+
+def inundated_graph_node_ids(
+    nodes: gpd.GeoDataFrame,
+    slr_layer: gpd.GeoDataFrame | None,
+) -> set[int]:
+    if slr_layer is None or slr_layer.empty:
+        return set()
+    projected_slr = slr_layer.to_crs(nodes.crs)
+    positions = query_intersecting_positions(nodes, projected_slr.geometry)
+    return set(nodes.iloc[positions]["node_id"].astype(int))
+
+
+def apply_bridge_rule_to_edges(
+    *,
+    edges: gpd.GeoDataFrame,
+    nodes: gpd.GeoDataFrame,
+    slr_layer: gpd.GeoDataFrame | None,
+    structures: pd.DataFrame,
+    landing_nodes: dict[int, set[int]],
+    bridge_rule: str,
+    slr_ft: int,
+) -> tuple[gpd.GeoDataFrame, pd.DataFrame, pd.DataFrame, dict[int, bool]]:
+    if bridge_rule not in BRIDGE_RULES:
+        raise ValueError(f"Unsupported bridge rule: {bridge_rule}")
+
+    intersect_positions = query_intersecting_positions(
+        edges,
+        None if slr_layer is None else slr_layer.geometry,
+    )
+    intersect_position_set = set(intersect_positions.tolist())
+    bridge_mask = edges["bridge_like"].to_numpy(dtype=bool)
+    non_bridge_removed_positions = {
+        position for position in intersect_position_set if not bridge_mask[position]
+    }
+    intersecting_bridge_positions = {
+        position for position in intersect_position_set if bridge_mask[position]
+    }
+    flooded_nodes = inundated_graph_node_ids(nodes, slr_layer)
+
+    audit = structures.copy()
+    if audit.empty:
+        audit = pd.DataFrame(
+            columns=[
+                "structure_id",
+                "landing_node_count",
+                "landing_node_ids",
+                "total_length_m",
+                "highway_classes",
+                "n_bridge_edges",
+                "n_osm_ways",
+            ]
+        )
+    audit.insert(0, "slr_ft", slr_ft)
+    audit["dry_landing_count"] = audit["structure_id"].map(
+        lambda structure_id: len(
+            landing_nodes.get(int(structure_id), set()) - flooded_nodes
+        )
+    ).astype(int)
+    audit["bridge_rule"] = bridge_rule
+
+    intersecting_counts: dict[int, int] = {}
+    if intersecting_bridge_positions:
+        intersecting_structures = edges.iloc[
+            sorted(intersecting_bridge_positions)
+        ]["structure_id"].dropna().astype(int)
+        intersecting_counts = intersecting_structures.value_counts().to_dict()
+    audit["geometrically_intersecting_edge_count"] = (
+        audit["structure_id"].map(intersecting_counts).fillna(0).astype(int)
+    )
+
+    if bridge_rule == "intersect":
+        bridge_removed_positions = intersecting_bridge_positions
+        audit["retained"] = audit["geometrically_intersecting_edge_count"].eq(0)
+        audit["removed_edge_count"] = audit["geometrically_intersecting_edge_count"]
+    elif bridge_rule == "approach":
+        audit["retained"] = audit["dry_landing_count"].ge(2)
+        removed_structure_ids = set(
+            audit.loc[~audit["retained"], "structure_id"].astype(int)
+        )
+        bridge_removed_positions = set(
+            np.flatnonzero(
+                edges["bridge_like"]
+                & edges["structure_id"].isin(removed_structure_ids)
+            ).tolist()
+        )
+        audit["removed_edge_count"] = np.where(
+            audit["retained"], 0, audit["n_bridge_edges"]
+        ).astype(int)
+    else:
+        bridge_removed_positions = set()
+        audit["retained"] = True
+        audit["removed_edge_count"] = 0
+
+    audit["removed"] = ~audit["retained"]
+    retention_lookup = {
+        int(row.structure_id): bool(row.retained)
+        for row in audit.itertuples(index=False)
+    }
+    removed_positions = sorted(non_bridge_removed_positions | bridge_removed_positions)
+    dry_edges = edges.drop(index=edges.index[removed_positions]).copy()
+    summary = pd.DataFrame.from_records(
+        [
+            {
+                "slr_ft": int(slr_ft),
+                "bridge_rule": bridge_rule,
+                "n_bridge_structures": int(len(audit)),
+                "n_bridge_structures_retained": int(audit["retained"].sum()),
+                "n_bridge_structures_removed": int(audit["removed"].sum()),
+                "n_non_bridge_edges_removed": int(len(non_bridge_removed_positions)),
+                "n_bridge_edges_removed": int(len(bridge_removed_positions)),
+                "n_total_edges_removed": int(len(removed_positions)),
+            }
+        ]
+    )
+    return dry_edges, audit, summary, retention_lookup
+
+
+def attach_nearest_bridge_structure(
+    origins: pd.DataFrame,
+    nodes: gpd.GeoDataFrame,
+    landing_nodes: dict[int, set[int]],
+) -> pd.DataFrame:
+    output = origins.copy()
+    landing_records = [
+        {"structure_id": int(structure_id), "node_id": int(node_id)}
+        for structure_id, node_ids in landing_nodes.items()
+        for node_id in node_ids
+    ]
+    if not landing_records:
+        output["nearby_bridge_structure_id"] = pd.Series(
+            pd.NA, index=output.index, dtype="Int64"
+        )
+        output["nearby_bridge_structure_distance_m"] = np.nan
+        return output
+
+    landing_frame = pd.DataFrame.from_records(landing_records).merge(
+        nodes[["node_id", "x", "y"]], on="node_id", how="left", validate="one_to_one"
+    )
+    landing_tree = cKDTree(landing_frame[["x", "y"]].to_numpy())
+    distances, indices = landing_tree.query(output[["x", "y"]].to_numpy(), k=1)
+    nearest_structures = landing_frame.iloc[np.asarray(indices, dtype=int)][
+        "structure_id"
+    ].to_numpy()
+    output["nearby_bridge_structure_id"] = pd.array(
+        nearest_structures, dtype="Int64"
+    )
+    output["nearby_bridge_structure_distance_m"] = np.asarray(
+        distances, dtype=float
+    )
+    outside_nearby_threshold = output[
+        "nearby_bridge_structure_distance_m"
+    ].gt(NEARBY_BRIDGE_DISTANCE_M)
+    output.loc[outside_nearby_threshold, "nearby_bridge_structure_id"] = pd.NA
+    return output
+
 def build_node_kdtree(nodes: gpd.GeoDataFrame) -> tuple[cKDTree, np.ndarray, np.ndarray]:
     coords = np.column_stack([nodes["x"].to_numpy(), nodes["y"].to_numpy()])
     node_ids = nodes["node_id"].to_numpy()
@@ -1465,6 +1708,7 @@ def scenario_results_for_origins(
     legacy_collocated_rule: bool = True,
     legacy_centroid_inundation_join: bool = True,
     bridge_rule_applied: str = "intersect",
+    bridge_structure_retained_lookup: dict[int, bool] | None = None,
 ) -> pd.DataFrame:
     (
         dry_component_lookup,
@@ -1585,6 +1829,20 @@ def scenario_results_for_origins(
         land_area_m2 = int(getattr(row, "land_area_m2", 1))
         origin_in_lcc = bool(getattr(row, "origin_in_lcc", True))
         origin_geometry_method = getattr(row, "origin_geometry_method", "centroid")
+        nearby_bridge_structure_id = getattr(
+            row, "nearby_bridge_structure_id", pd.NA
+        )
+        nearby_bridge_structure_distance_m = getattr(
+            row, "nearby_bridge_structure_distance_m", np.nan
+        )
+        nearby_bridge_structure_retained = pd.NA
+        if (
+            bridge_structure_retained_lookup is not None
+            and not pd.isna(nearby_bridge_structure_id)
+        ):
+            nearby_bridge_structure_retained = bridge_structure_retained_lookup.get(
+                int(nearby_bridge_structure_id), pd.NA
+            )
         zero_land_area = land_area_m2 == 0
         analysis_eligible = bool(origin_valid and not zero_land_area)
         if not origin_valid:
@@ -1633,6 +1891,9 @@ def scenario_results_for_origins(
                 "nearest_reachable_service_id": nearest_service_id,
                 "service_snap_rule": nearest_service_snap_rule,
                 "bridge_rule_applied": bridge_rule_applied,
+                "nearby_bridge_structure_id": nearby_bridge_structure_id,
+                "nearby_bridge_structure_distance_m": nearby_bridge_structure_distance_m,
+                "nearby_bridge_structure_retained": nearby_bridge_structure_retained,
                 "baseline_shortest_path_distance_m": baseline_distance,
                 "dry_shortest_path_distance_m": dry_distance,
                 "detour_ratio": safe_detour_ratio(baseline_distance, dry_distance),
@@ -1743,6 +2004,12 @@ def manifest_json_value(value: object) -> object:
         }
     if isinstance(value, (str, int, float, bool)) or value is None:
         return value
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.floating):
+        return float(value)
+    if isinstance(value, np.bool_):
+        return bool(value)
     return str(value)
 
 
@@ -1807,7 +2074,9 @@ def build_run_manifest(
     service_rule_counts["moved_total"] = int(service_audit["service_node_moved"].sum())
     bridge_counts: list[dict[str, object]] = []
     if bridge_structure_summary is not None and not bridge_structure_summary.empty:
-        bridge_counts = bridge_structure_summary.to_dict(orient="records")
+        bridge_counts = manifest_json_value(
+            bridge_structure_summary.to_dict(orient="records")
+        )
 
     cli_flags = {
         key: manifest_json_value(value) for key, value in sorted(vars(args).items())
@@ -2019,6 +2288,8 @@ def main() -> int:
         smoke=args.smoke,
         rebuild_cache=args.rebuild_cache,
     )
+    edges, bridge_structures, bridge_landing_nodes = build_bridge_structures(edges)
+    log(f"Physical bridge structures: {len(bridge_structures):,}")
     graph_baseline = build_graph(edges)
     tree, _, node_ids = build_node_kdtree(nodes)
     raw_membership = load_or_compute_raw_graph_membership(
@@ -2059,6 +2330,9 @@ def main() -> int:
         restrict_to_lcc=not args.legacy_origin_snap,
     )
     origins = origins.merge(origin_snap, on="block_geoid", how="left")
+    origins = attach_nearest_bridge_structure(
+        origins, nodes, bridge_landing_nodes
+    )
 
     services = attach_services_to_raw_graph(
         services,
@@ -2124,25 +2398,37 @@ def main() -> int:
     )
 
     scenario_outputs: list[pd.DataFrame] = []
-    edges_sindex = edges.sindex
+    bridge_structure_summaries: list[pd.DataFrame] = []
 
     for slr_ft, slr_layer_name in requested_layers.items():
         log(f"Processing SLR {slr_ft} ft ({slr_layer_name})...")
         slr_layer = load_slr_layer(slr_layer_name, source_clip_polygon)
         if slr_layer is None:
             warn(f"Layer {slr_layer_name} had no inundation polygons within the buffered retained network.")
-            dry_edges = edges
         else:
             log(f"SLR polygons retained for {slr_ft} ft: {len(slr_layer):,}")
-            query_matches = edges_sindex.query(slr_layer.geometry, predicate="intersects")
-            if isinstance(query_matches, tuple):
-                flooded_edge_indices = np.unique(np.asarray(query_matches[1], dtype=int))
-            elif hasattr(query_matches, "shape") and len(query_matches.shape) == 2:
-                flooded_edge_indices = np.unique(np.asarray(query_matches[1], dtype=int))
-            else:
-                flooded_edge_indices = np.unique(np.asarray(query_matches, dtype=int))
-            dry_edges = edges.drop(index=edges.index[flooded_edge_indices]).copy()
-            log(f"Flooded segment count at {slr_ft} ft: {len(flooded_edge_indices):,}")
+        (
+            dry_edges,
+            bridge_audit,
+            bridge_summary,
+            bridge_retention_lookup,
+        ) = apply_bridge_rule_to_edges(
+            edges=edges,
+            nodes=nodes,
+            slr_layer=slr_layer,
+            structures=bridge_structures,
+            landing_nodes=bridge_landing_nodes,
+            bridge_rule=args.bridge_rule,
+            slr_ft=slr_ft,
+        )
+        bridge_audit_path = run_dir / f"bridge_structures_slr_{slr_ft}ft.csv"
+        bridge_audit.to_csv(bridge_audit_path, index=False)
+        bridge_structure_summaries.append(bridge_summary)
+        log(f"Saved physical bridge audit to {bridge_audit_path}")
+        log(
+            f"Removed segment count at {slr_ft} ft under bridge_rule={args.bridge_rule}: "
+            f"{int(bridge_summary['n_total_edges_removed'].iloc[0]):,}"
+        )
 
         dry_graph = build_graph(dry_edges)
         scenario_output = scenario_results_for_origins(
@@ -2159,7 +2445,8 @@ def main() -> int:
             unclassify_failed_origins=not args.legacy_origin_failure_status,
             legacy_collocated_rule=args.legacy_collocated_rule,
             legacy_centroid_inundation_join=args.legacy_centroid_inundation_join,
-            bridge_rule_applied="intersect",
+            bridge_rule_applied=args.bridge_rule,
+            bridge_structure_retained_lookup=bridge_retention_lookup,
         )
         scenario_outputs.append(scenario_output)
 
@@ -2196,6 +2483,9 @@ def main() -> int:
             FIRE_STATIONS_PATH,
             ROAD_PBF_PATH,
         ],
+        bridge_structure_summary=pd.concat(
+            bridge_structure_summaries, ignore_index=True
+        ),
     )
     write_run_manifest(manifest, run_dir / "run_manifest.json")
     print_summary_tables(results)
