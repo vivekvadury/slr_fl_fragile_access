@@ -27,6 +27,8 @@ Important interpretation notes
 - Road bridges are identified from OSM bridge/layer tags and grouped into
   physical structures. ``--bridge-rule intersect`` restores legacy removal;
   ``approach`` is the default and ``retain`` is an upper bound.
+- Only positive layer tags imply elevation; ``--legacy-layer-gate`` restores
+  the former nonzero-layer interpretation for published-run verification.
 - Flooded centroids are treated as inaccessible origins even if a snapped
   network node would otherwise remain connected.
 - Service access currently combines primary schools and fire stations. See
@@ -190,7 +192,7 @@ BOUNDARY_FLAG_DISTANCE_M = 2_000
 SLR_CLIP_BUFFER_M = 5_000
 MAX_EDGE_DISJOINT_PATHS_CAP = 2
 QA_SAMPLE_PER_GROUP = 5
-CACHE_SCHEMA_VERSION = 2
+CACHE_SCHEMA_VERSION = 3
 DEFAULT_CONFIG_NAME = "corrected"
 NEARBY_BRIDGE_DISTANCE_M = 2_000
 BRIDGE_RULES = {"intersect", "approach", "retain"}
@@ -314,6 +316,11 @@ def parse_args() -> argparse.Namespace:
         help="Snap origins to all raw-graph nodes instead of LCC nodes only.",
     )
     parser.add_argument(
+        "--legacy-layer-gate",
+        action="store_true",
+        help="Treat every nonzero or unparseable layer tag as elevated when identifying bridge-like edges.",
+    )
+    parser.add_argument(
         "--legacy-centroid",
         action="store_true",
         help="Use polygon centroids as primary origins instead of representative points.",
@@ -349,6 +356,7 @@ def apply_legacy_mode(args: argparse.Namespace) -> argparse.Namespace:
         return args
     args.legacy_service_snap = True
     args.legacy_origin_snap = True
+    args.legacy_layer_gate = True
     args.legacy_centroid = True
     args.legacy_origin_failure_status = True
     args.legacy_collocated_rule = True
@@ -447,10 +455,12 @@ def graph_cache_paths(
     drivable_highways: set[str],
     *,
     smoke: bool,
+    legacy_layer_gate: bool = False,
 ) -> dict[str, Path]:
     filter_hash = highway_filter_hash(drivable_highways)
     scope = "smoke" if smoke else "full"
-    stem = f"{filter_hash}_{scope}_v{CACHE_SCHEMA_VERSION}"
+    layer_gate = "layer_nonzero" if legacy_layer_gate else "layer_positive"
+    stem = f"{filter_hash}_{scope}_{layer_gate}_v{CACHE_SCHEMA_VERSION}"
     return {
         "nodes": cache_dir / f"segmentized_nodes_{stem}.parquet",
         "edges": cache_dir / f"segmentized_edges_{stem}.parquet",
@@ -466,9 +476,15 @@ def load_or_build_segmentized_roads(
     drivable_highways: set[str],
     smoke: bool,
     rebuild_cache: bool,
+    legacy_layer_gate: bool = False,
 ) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, dict[str, Path]]:
     cache_dir.mkdir(parents=True, exist_ok=True)
-    paths = graph_cache_paths(cache_dir, drivable_highways, smoke=smoke)
+    paths = graph_cache_paths(
+        cache_dir,
+        drivable_highways,
+        smoke=smoke,
+        legacy_layer_gate=legacy_layer_gate,
+    )
     cache_available = paths["nodes"].exists() and paths["edges"].exists()
     if cache_available and not rebuild_cache:
         log(f"Loaded segmentized nodes cache: {paths['nodes']}")
@@ -495,7 +511,9 @@ def load_or_build_segmentized_roads(
         return nodes, edges, paths
 
     log("Computing segmentized road cache.")
-    nodes, edges = segmentize_roads(roads)
+    nodes, edges = segmentize_roads(
+        roads, legacy_layer_gate=legacy_layer_gate
+    )
     nodes.to_parquet(paths["nodes"], index=False)
     edges.to_parquet(paths["edges"], index=False)
     cache_metadata = {
@@ -503,6 +521,7 @@ def load_or_build_segmentized_roads(
         "drivable_highways": sorted(drivable_highways),
         "highway_filter_hash": highway_filter_hash(drivable_highways),
         "smoke": bool(smoke),
+        "legacy_layer_gate": bool(legacy_layer_gate),
         "road_source_size": ROAD_PBF_PATH.stat().st_size,
         "road_source_mtime": ROAD_PBF_PATH.stat().st_mtime,
         "n_nodes": int(len(nodes)),
@@ -871,7 +890,24 @@ def is_nonzero_layer_value(value: str | None) -> bool:
     except ValueError:
         return True
 
-def segmentize_roads(roads: gpd.GeoDataFrame) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
+
+def is_positive_layer_value(value: str | None) -> bool:
+    if value is None:
+        return False
+    text = str(value).strip()
+    if not text:
+        return False
+    try:
+        return float(text) > 0.0
+    except ValueError:
+        return False
+
+
+def segmentize_roads(
+    roads: gpd.GeoDataFrame,
+    *,
+    legacy_layer_gate: bool = False,
+) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
     """Split retained road geometries into consecutive-vertex graph edges."""
     node_lookup: dict[tuple[float, float], int] = {}
     node_records: list[dict[str, object]] = []
@@ -909,7 +945,12 @@ def segmentize_roads(roads: gpd.GeoDataFrame) -> tuple[gpd.GeoDataFrame, gpd.Geo
         bridge_value = parse_other_tag(row.other_tags, "bridge")
         layer_value = parse_other_tag(row.other_tags, "layer")
         bridge_tag_present = bridge_value is not None
-        bridge_like = bridge_tag_present or is_nonzero_layer_value(layer_value)
+        layer_gate_passes = (
+            is_nonzero_layer_value(layer_value)
+            if legacy_layer_gate
+            else is_positive_layer_value(layer_value)
+        )
+        bridge_like = bridge_tag_present or layer_gate_passes
         for line in iter_lines(row.geometry):
             coords = list(line.coords)
             if len(coords) < 2:
@@ -2291,6 +2332,7 @@ def main() -> int:
         drivable_highways=highway_filter,
         smoke=args.smoke,
         rebuild_cache=args.rebuild_cache,
+        legacy_layer_gate=args.legacy_layer_gate,
     )
     edges, bridge_structures, bridge_landing_nodes = build_bridge_structures(edges)
     log(f"Physical bridge structures: {len(bridge_structures):,}")
