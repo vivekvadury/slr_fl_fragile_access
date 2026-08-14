@@ -1539,10 +1539,10 @@ def capped_local_edge_connectivity(
 
 
 def classify_status(row: pd.Series) -> str:
-    if row.get("block_centroid_unclassified", 0) == 1:
-        return "unclassified"
     if row["block_centroid_inundated"] == 1:
         return "inundated"
+    if row.get("block_centroid_unclassified", 0) == 1:
+        return "unclassified"
     if row["block_centroid_isolated"] == 1:
         return "isolated"
     if row["block_centroid_redundant"] == 1:
@@ -1562,13 +1562,13 @@ def classify_status_columns(
     unclassified_col: str | None = None,
 ) -> pd.Series:
     conditions = [
-        frame[unclassified_col].eq(1) if unclassified_col is not None else pd.Series(False, index=frame.index),
         frame[inundated_col].eq(1),
+        frame[unclassified_col].eq(1) if unclassified_col is not None else pd.Series(False, index=frame.index),
         frame[isolated_col].eq(1),
         frame[redundant_col].eq(1),
         frame[fragile_col].eq(1),
     ]
-    choices = ["unclassified", "inundated", "isolated", "redundant", "fragile"]
+    choices = ["inundated", "unclassified", "isolated", "redundant", "fragile"]
     return pd.Series(np.select(conditions, choices, default="other"), index=frame.index, dtype="object")
 
 
@@ -1798,7 +1798,11 @@ def scenario_results_for_origins(
                 )
 
         access_failure = (not origin_valid) or reachable_service_count == 0
-        is_unclassified = int(unclassify_failed_origins and not origin_valid)
+        is_unclassified = int(
+            unclassify_failed_origins
+            and not origin_valid
+            and not centroid_is_flooded
+        )
         is_inundated = int(centroid_is_flooded)
         is_isolated = int(
             (not is_unclassified) and (not centroid_is_flooded) and access_failure
