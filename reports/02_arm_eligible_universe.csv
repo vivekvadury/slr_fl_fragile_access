@@ -1,0 +1,4 @@
+arm,slr_levels,eligible_blocks,eligible_population_pop20,eligible_long_rows,block_groups,block_group_slr_rows,source
+intersect,0-6,68521,6135688,479647,3942,27594,data/processed/access/edited/della_runs/positive_layer_20260814_intersect/block_access_flags_long.parquet
+approach,0-6,68521,6135688,479647,3942,27594,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.parquet
+retain,0-6,68521,6135688,479647,3942,27594,data/processed/access/edited/della_runs/positive_layer_20260814_retain/block_access_flags_long.parquet

@@ -1,0 +1,7 @@
+arm,risk_set,all_block_groups,eligible_block_groups,all_weight_sum,eligible_weight_sum,weight_reduction,weight_reduction_share,block_groups_weight_changed,max_group_reduction,source
+intersect,baseline_redundant_n,3946,3942,50918,50303,615,0.0120782434502455,433,8,data/processed/access/edited/della_runs/positive_layer_20260814_intersect/block_access_flags_long.parquet
+intersect,baseline_fragile_n,3946,3942,17989,17594,395,0.0219578631385847,269,11,data/processed/access/edited/della_runs/positive_layer_20260814_intersect/block_access_flags_long.parquet
+approach,baseline_redundant_n,3946,3942,51452,50835,617,0.0119917593096478,435,8,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.parquet
+approach,baseline_fragile_n,3946,3942,17729,17335,394,0.0222234756613469,269,11,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.parquet
+retain,baseline_redundant_n,3946,3942,51452,50835,617,0.0119917593096478,435,8,data/processed/access/edited/della_runs/positive_layer_20260814_retain/block_access_flags_long.parquet
+retain,baseline_fragile_n,3946,3942,17751,17356,395,0.0222522674778886,269,11,data/processed/access/edited/della_runs/positive_layer_20260814_retain/block_access_flags_long.parquet

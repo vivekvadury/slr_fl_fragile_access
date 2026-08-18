@@ -1,0 +1,4 @@
+universe,block_count,baseline_fragile_count,baseline_fragile_share,eligible_population_pop20,interpretation,source
+legacy_all_blocks,70695,,0.2469,,legacy denominator retained in prior results for comparison only,user-provided Phase 2 reconciliation context
+legacy_pop20_gt_0,55411,,0.2585,,legacy populated-block denominator retained in prior results for comparison only,user-provided Phase 2 reconciliation context
+analysis_eligible,68521,17335,0.2529881350242991,6135688,manuscript universe used by the propagated approach analysis,outputs/tables/fig4_status_population_by_slr_approach.csv

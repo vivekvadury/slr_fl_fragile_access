@@ -7,16 +7,126 @@
 # - AME_BOOT_REPS sets successful bootstrap replications; default is 199.
 # - AME_BOOT_SEED sets the base seed; default is 20260411.
 # - AME_BOOT_MAX_ATTEMPTS sets the retry cap for failed bootstrap fits.
+#
+# Runtime controls:
+# - BRIDGE_ARM selects approach, intersect, or retain; default is approach.
+# - TRANSITION_DATA_PATH overrides the arm-tagged input dataset.
+# - The input path may also be supplied positionally or with --data; --arm
+#   overrides BRIDGE_ARM. Examples:
+#     Rscript scripts/04_transition_models.R --arm retain
+#     Rscript scripts/04_transition_models.R --arm retain --data path/to/data.csv
 
 library(tidyverse)
 library(fixest)
 library(marginaleffects)
 library(openxlsx)
 
-DATA_PATH <- "data/processed/analysis/block_group_analysis_dataset.csv"
+VALID_ARMS <- c("intersect", "approach", "retain")
+
+parse_runtime_options <- function(args = commandArgs(trailingOnly = TRUE)) {
+  env_arm <- Sys.getenv("BRIDGE_ARM", unset = "")
+  arm <- if (nzchar(env_arm)) env_arm else "approach"
+  arm_is_explicit <- nzchar(env_arm)
+  data_path <- Sys.getenv("TRANSITION_DATA_PATH", unset = "")
+  cli_data_path <- ""
+  positional <- character()
+
+  i <- 1L
+  while (i <= length(args)) {
+    arg <- args[[i]]
+    if (identical(arg, "--arm")) {
+      if (i == length(args)) {
+        stop("--arm requires a value.")
+      }
+      i <- i + 1L
+      arm <- args[[i]]
+      arm_is_explicit <- TRUE
+    } else if (startsWith(arg, "--arm=")) {
+      arm <- substring(arg, nchar("--arm=") + 1L)
+      arm_is_explicit <- TRUE
+    } else if (identical(arg, "--data")) {
+      if (i == length(args)) {
+        stop("--data requires a value.")
+      }
+      i <- i + 1L
+      cli_data_path <- args[[i]]
+    } else if (startsWith(arg, "--data=")) {
+      cli_data_path <- substring(arg, nchar("--data=") + 1L)
+    } else if (startsWith(arg, "--")) {
+      stop("Unknown command-line option: ", arg)
+    } else {
+      positional <- c(positional, arg)
+    }
+    i <- i + 1L
+  }
+
+  if (length(positional) > 1L) {
+    stop("At most one positional dataset path may be supplied.")
+  }
+  if (length(positional) == 1L && nzchar(cli_data_path)) {
+    stop("Supply the dataset path either positionally or with --data, not both.")
+  }
+  if (length(positional) == 1L) {
+    cli_data_path <- positional[[1]]
+  }
+  if (nzchar(cli_data_path)) {
+    data_path <- cli_data_path
+  }
+
+  if (nzchar(data_path)) {
+    arm_match <- regexec(
+      "block_group_analysis_dataset_(intersect|approach|retain)\\.csv$",
+      basename(data_path)
+    )
+    arm_parts <- regmatches(basename(data_path), arm_match)[[1]]
+    if (length(arm_parts) == 2L) {
+      inferred_arm <- arm_parts[[2]]
+      if (arm_is_explicit && !identical(arm, inferred_arm)) {
+        stop(
+          "Arm '", arm, "' conflicts with dataset filename arm '",
+          inferred_arm, "'."
+        )
+      }
+      if (!arm_is_explicit) {
+        arm <- inferred_arm
+      }
+    }
+  }
+
+  if (!(arm %in% VALID_ARMS)) {
+    stop(
+      "Invalid arm '", arm, "'. Expected one of: ",
+      paste(VALID_ARMS, collapse = ", "), "."
+    )
+  }
+  if (!nzchar(data_path)) {
+    data_path <- file.path(
+      "data",
+      "processed",
+      "analysis",
+      sprintf("block_group_analysis_dataset_%s.csv", arm)
+    )
+  }
+
+  list(arm = arm, data_path = data_path)
+}
+
+RUN_OPTIONS <- parse_runtime_options()
+ARM <- RUN_OPTIONS$arm
+DATA_PATH <- RUN_OPTIONS$data_path
 TABLE_DIR <- file.path("outputs", "tables")
-AME_EXCEL_PATH <- file.path(TABLE_DIR, "ame_bootstrap_results.xlsx")
-AME_LATEX_PATH <- file.path(TABLE_DIR, "ame_bootstrap_transition_table.tex")
+AME_EXCEL_PATH <- file.path(
+  TABLE_DIR,
+  sprintf("ame_bootstrap_results_%s.xlsx", ARM)
+)
+AME_LATEX_PATH <- file.path(
+  TABLE_DIR,
+  sprintf("ame_bootstrap_transition_table_%s.tex", ARM)
+)
+SAMPLE_DIAGNOSTICS_PATH <- file.path(
+  TABLE_DIR,
+  sprintf("transition_sample_diagnostics_%s.csv", ARM)
+)
 
 CORE_COVARIATES <- c(
   "pct_black_nh",
@@ -38,7 +148,32 @@ MODEL_COVARIATES <- c(
 
 MODEL_RHS <- paste(MODEL_COVARIATES, collapse = " + ")
 
+STATE_COUNT_COLUMNS <- c(
+  "block_centroid_unclassified",
+  "block_centroid_inundated",
+  "block_centroid_isolated",
+  "block_centroid_fragile",
+  "block_centroid_redundant"
+)
+
+TRANSITION_COUNT_COLUMNS <- c(
+  "any_loss_of_redundancy",
+  "baseline_redundant_to_fragile",
+  "baseline_redundant_to_isolated",
+  "baseline_redundant_to_inundated",
+  "baseline_fragile_to_isolated",
+  "baseline_fragile_to_inundated"
+)
+
 read_analysis_data <- function(path = DATA_PATH) {
+  if (!file.exists(path)) {
+    stop(
+      "Analysis dataset does not exist: ", path,
+      ". Run notebook 03 for arm '", ARM, "' first."
+    )
+  }
+  message("Arm: ", ARM)
+  message("Reading analysis dataset: ", path)
   readr::read_csv(
     path,
     show_col_types = FALSE,
@@ -51,19 +186,109 @@ read_analysis_data <- function(path = DATA_PATH) {
     select(-any_of("poverty_rate"))
 }
 
+assert_eligible_state_partition <- function(dat) {
+  required_columns <- c(
+    "block_group_geoid",
+    "slr_ft",
+    "total_blocks",
+    STATE_COUNT_COLUMNS,
+    TRANSITION_COUNT_COLUMNS
+  )
+  missing_columns <- setdiff(required_columns, names(dat))
+  if (length(missing_columns) > 0L) {
+    stop(
+      "The analysis dataset is missing required eligible-universe columns: ",
+      paste(missing_columns, collapse = ", "), "."
+    )
+  }
+
+  duplicate_keys <- dat %>%
+    count(block_group_geoid, slr_ft, name = "n") %>%
+    filter(n != 1L)
+  if (nrow(duplicate_keys) > 0L) {
+    stop(
+      "Expected one row per (block_group_geoid, slr_ft); found ",
+      nrow(duplicate_keys), " duplicate keys."
+    )
+  }
+
+  state_matrix <- as.matrix(dat[, STATE_COUNT_COLUMNS, drop = FALSE])
+  if (anyNA(state_matrix) || anyNA(dat$total_blocks)) {
+    stop("Eligible-universe state counts and total_blocks must not be missing.")
+  }
+  if (
+    any(!is.finite(state_matrix)) ||
+      any(state_matrix < 0) ||
+      any(state_matrix != floor(state_matrix))
+  ) {
+    stop("Eligible-universe state counts must be finite, nonnegative integers.")
+  }
+
+  eligible_risk_set_n <- rowSums(state_matrix)
+  bad_partition <- which(eligible_risk_set_n != dat$total_blocks)
+  if (length(bad_partition) > 0L) {
+    example_rows <- head(bad_partition, 5L)
+    examples <- tibble(
+      key = paste0(
+        dat$block_group_geoid[example_rows], "@",
+        dat$slr_ft[example_rows], "ft"
+      ),
+      total_blocks = dat$total_blocks[example_rows],
+      state_sum = eligible_risk_set_n[example_rows]
+    )
+    stop(
+      "Five-state counts do not sum to the eligible risk set in ",
+      length(bad_partition), " block-group/SLR rows. Examples: ",
+      paste0(
+        examples$key, " (total=", examples$total_blocks,
+        ", states=", examples$state_sum, ")",
+        collapse = "; "
+      )
+    )
+  }
+
+  message(
+    "Eligible-universe state partition passed for ", nrow(dat),
+    " block-group/SLR rows."
+  )
+  dat %>% mutate(eligible_risk_set_n = .env$eligible_risk_set_n)
+}
+
+make_filter_diagnostic <- function(data, keep, filter_name) {
+  if (length(keep) != nrow(data) || anyNA(keep)) {
+    stop("Invalid keep vector for sample diagnostic: ", filter_name)
+  }
+  dropped_block_groups <- data$block_group_geoid[!keep]
+  retained_block_groups <- data$block_group_geoid[keep]
+  tibble(
+    arm = ARM,
+    filter = filter_name,
+    input_rows = nrow(data),
+    input_block_groups = n_distinct(data$block_group_geoid),
+    dropped_rows = sum(!keep),
+    dropped_block_groups = n_distinct(dropped_block_groups),
+    retained_rows = sum(keep),
+    retained_block_groups = n_distinct(retained_block_groups)
+  )
+}
+
 prepare_transition_data <- function(dat) {
+  dat <- assert_eligible_state_partition(dat)
+
   base_counts <- dat %>%
     filter(slr_ft == 0) %>%
     transmute(
       block_group_geoid,
       baseline_total_blocks = total_blocks,
+      baseline_eligible_risk_set_n = eligible_risk_set_n,
+      baseline_unclassified_n = block_centroid_unclassified,
       baseline_redundant_n = block_centroid_redundant,
       baseline_fragile_n = block_centroid_fragile,
       baseline_isolated_n = block_centroid_isolated,
       baseline_inundated_n = block_centroid_inundated
     )
 
-  dat %>%
+  prepared <- dat %>%
     left_join(base_counts, by = "block_group_geoid") %>%
     mutate(
       slr_ft_f = factor(slr_ft),
@@ -97,15 +322,108 @@ prepare_transition_data <- function(dat) {
         baseline_fragile_to_inundated / baseline_fragile_n,
         NA_real_
       )
-    ) %>%
+    )
+
+  baseline_columns <- c(
+    "baseline_total_blocks",
+    "baseline_eligible_risk_set_n",
+    "baseline_unclassified_n",
+    "baseline_redundant_n",
+    "baseline_fragile_n",
+    "baseline_isolated_n",
+    "baseline_inundated_n"
+  )
+  if (anyNA(prepared[, baseline_columns, drop = FALSE])) {
+    stop("At least one block group lacks a unique 0-ft eligible baseline row.")
+  }
+
+  baseline_state_sum <- with(
+    prepared,
+    baseline_unclassified_n + baseline_inundated_n + baseline_isolated_n +
+      baseline_fragile_n + baseline_redundant_n
+  )
+  bad_baseline_partition <- which(
+    baseline_state_sum != prepared$baseline_eligible_risk_set_n |
+      prepared$baseline_eligible_risk_set_n != prepared$baseline_total_blocks
+  )
+  if (length(bad_baseline_partition) > 0L) {
+    stop(
+      "Baseline five-state counts do not equal baseline_total_blocks in ",
+      length(bad_baseline_partition), " block-group/SLR rows."
+    )
+  }
+
+  unstable_universe <- which(
+    prepared$eligible_risk_set_n != prepared$baseline_eligible_risk_set_n |
+      prepared$total_blocks != prepared$baseline_total_blocks
+  )
+  if (length(unstable_universe) > 0L) {
+    stop(
+      "The eligible block risk set changes with SLR in ",
+      length(unstable_universe), " block-group/SLR rows."
+    )
+  }
+
+  transition_matrix <- as.matrix(
+    prepared[, TRANSITION_COUNT_COLUMNS, drop = FALSE]
+  )
+  if (
+    anyNA(transition_matrix) ||
+      any(!is.finite(transition_matrix)) ||
+      any(transition_matrix < 0) ||
+      any(transition_matrix != floor(transition_matrix))
+  ) {
+    stop("Transition counts must be finite, nonnegative integers.")
+  }
+  redundant_event_sum <- with(
+    prepared,
+    baseline_redundant_to_fragile + baseline_redundant_to_isolated +
+      baseline_redundant_to_inundated
+  )
+  fragile_event_sum <- with(
+    prepared,
+    baseline_fragile_to_isolated + baseline_fragile_to_inundated
+  )
+  bad_transition_risk_set <- which(
+    redundant_event_sum != prepared$any_loss_of_redundancy |
+      redundant_event_sum > prepared$baseline_redundant_n |
+      fragile_event_sum > prepared$baseline_fragile_n
+  )
+  if (length(bad_transition_risk_set) > 0L) {
+    stop(
+      "Transition events do not fit their eligible baseline state risk sets in ",
+      length(bad_transition_risk_set), " block-group/SLR rows."
+    )
+  }
+
+  # The grouped-binomial weights below are explicit state-specific risk sets
+  # inside the validated eligible universe, not total block counts.
+  scaled <- prepared %>%
     mutate(
       across(
         all_of(CORE_COVARIATES),
         ~ as.numeric(scale(.x)),
         .names = "z_{.col}"
       )
-    ) %>%
-    drop_na(all_of(MODEL_COVARIATES))
+    )
+
+  complete_covariates <- complete.cases(
+    scaled[, MODEL_COVARIATES, drop = FALSE]
+  )
+  covariate_diagnostic <- make_filter_diagnostic(
+    scaled,
+    complete_covariates,
+    "drop_na(all_of(MODEL_COVARIATES))"
+  )
+  message(
+    "Covariate completeness filter dropped ",
+    covariate_diagnostic$dropped_block_groups, " block groups (",
+    covariate_diagnostic$dropped_rows, " block-group/SLR rows)."
+  )
+
+  output <- scaled[complete_covariates, , drop = FALSE]
+  attr(output, "covariate_filter_diagnostic") <- covariate_diagnostic
+  output
 }
 
 fit_transition_model <- function(outcome, data, weight_var) {
@@ -474,7 +792,10 @@ write_ame_outputs <- function(ame_boot_combined, models, specs) {
   colnames(diagnostic_rows) <- colnames(ame_table)
 
   latex_lines <- c(
-    "% Auto-generated by scripts/04_manuscript_transition_models.R",
+    paste0(
+      "% Auto-generated by scripts/04_transition_models.R for arm: ",
+      ARM
+    ),
     "\\begin{table}[!htbp]",
     "\\centering",
     "\\scriptsize",
@@ -524,11 +845,55 @@ write_ame_outputs <- function(ame_boot_combined, models, specs) {
   message("Saved manuscript LaTeX table to: ", AME_LATEX_PATH)
 }
 
-analysis_dat <- read_analysis_data() %>%
-  prepare_transition_data()
+analysis_dat <- read_analysis_data() %>% prepare_transition_data()
+covariate_filter_diagnostic <- attr(
+  analysis_dat,
+  "covariate_filter_diagnostic"
+)
 
 trans_dat <- analysis_dat %>%
   filter(slr_ft > 0)
+
+redundant_risk_keep <- trans_dat$baseline_redundant_n > 0
+fragile_risk_keep <- trans_dat$baseline_fragile_n > 0
+
+sample_diagnostics <- bind_rows(
+  covariate_filter_diagnostic,
+  make_filter_diagnostic(
+    trans_dat,
+    redundant_risk_keep,
+    "baseline_redundant_n > 0"
+  ),
+  make_filter_diagnostic(
+    trans_dat,
+    fragile_risk_keep,
+    "baseline_fragile_n > 0"
+  )
+)
+
+dir.create(TABLE_DIR, showWarnings = FALSE, recursive = TRUE)
+readr::write_csv(sample_diagnostics, SAMPLE_DIAGNOSTICS_PATH)
+purrr::pwalk(
+  sample_diagnostics,
+  function(
+      arm,
+      filter,
+      input_rows,
+      input_block_groups,
+      dropped_rows,
+      dropped_block_groups,
+      retained_rows,
+      retained_block_groups
+  ) {
+    message(
+      "[", arm, "] ", filter, ": dropped ", dropped_block_groups, " of ",
+      input_block_groups, " block groups and ", dropped_rows, " of ",
+      input_rows, " rows; retained ", retained_block_groups,
+      " block groups and ", retained_rows, " rows."
+    )
+  }
+)
+message("Saved sample diagnostics to: ", SAMPLE_DIAGNOSTICS_PATH)
 
 redrisk_dat <- trans_dat %>%
   filter(baseline_redundant_n > 0) %>%
