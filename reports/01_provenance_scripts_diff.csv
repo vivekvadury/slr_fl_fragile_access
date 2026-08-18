@@ -1,0 +1,9 @@
+path,status,insertions,deletions,role,producer_relevant,provenance_note
+scripts/02_access_flags.py,modified,57,11,canonical_access_flag_producer,true,current_blob_matches_fcc532b
+scripts/02f_bridge_rule_investigation.ipynb,added,3795,0,later_investigation,false,added_in_e313c4c_on_2026-08-18
+scripts/02g_compare_bridge_rule_runs.py,added,1878,0,run_comparison_utility,false,added_in_ba97e1a
+scripts/__pycache__/02_access_flags.cpython-311.pyc,added_binary,,,compiled_artifact,false,later_artifact
+scripts/__pycache__/02b_diagnose_access_run.cpython-311.pyc,added_binary,,,compiled_artifact,false,later_artifact
+scripts/__pycache__/02c_graph_component_diagnostics.cpython-311.pyc,added_binary,,,compiled_artifact,false,later_artifact
+scripts/__pycache__/02d_measurement_validity_diagnostics.cpython-311.pyc,added_binary,,,compiled_artifact,false,later_artifact
+scripts/__pycache__/02g_compare_bridge_rule_runs.cpython-311.pyc,added_binary,,,compiled_artifact,false,later_artifact

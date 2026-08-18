@@ -1,0 +1,6 @@
+category,legacy_component_count,corrected_component_count,exposed_edge_count,exposed_length_m,definition,source_cache
+unchanged,3481,3481,0,0,identical_edge_membership,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+membership_changed_unsplit,1,1,22,618.523915,one_to_one_shared_core_but_edge_membership_changed,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+split,0,0,0,0,one_legacy_component_maps_to_multiple_corrected_components,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+vanished,282,0,1414,25839.891794,legacy_component_has_no_corrected_edge,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+total,3764,3482,1436,26458.415709,all_components,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet

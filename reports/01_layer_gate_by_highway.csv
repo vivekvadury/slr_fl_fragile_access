@@ -1,0 +1,9 @@
+highway,edge_count,total_length_m,osm_way_count,share_exposed_edges,share_exposed_length,source_cache
+service,1176,17922.563195829,306,0.818941504,0.677386106,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+unclassified,95,1394.393904286,9,0.066155989,0.052701338,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+primary,79,2789.586509036,13,0.055013928,0.105432863,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+residential,39,951.180559123,6,0.027158774,0.035950019,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+motorway,38,2608.141562386,2,0.026462396,0.098575122,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+primary_link,5,413.674284590,4,0.003481894,0.015634885,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+secondary,2,35.910213825,2,0.001392758,0.001357232,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet
+tertiary,2,342.965480408,2,0.001392758,0.012962434,data/processed/access/cache/segmentized_edges_fe639d75a84cb809_full_v2.parquet

@@ -1,0 +1,12 @@
+highway_classes,removed_structure_count,share_removed_structures,total_length_m,source
+service,86,0.430,9373.104198245193,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+residential,42,0.210,1908.393989606717,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+tertiary,23,0.115,729.984859727154,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+primary,23,0.115,1674.924333015401,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+secondary,15,0.075,1669.379972705997,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+motorway,4,0.020,385.706506014523,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+unclassified,3,0.015,161.155706886985,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+trunk,1,0.005,18.316430744583,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+secondary_link,1,0.005,18.027645100549,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+primary|primary_link,1,0.005,154.107372728092,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+residential|unclassified,1,0.005,682.315452249242,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv

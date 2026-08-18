@@ -1,0 +1,6 @@
+landing_node_count,removed_structure_count,share_removed_structures,total_length_m,dry_landing_count_0,dry_landing_count_1,source
+0,14,0.070,1865.975119615982,14,0,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+1,84,0.420,8706.746252759429,0,84,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+2,100,0.500,6008.785992322304,24,76,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+3,1,0.005,39.801729598634,0,1,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+4,1,0.005,154.107372728092,0,1,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv

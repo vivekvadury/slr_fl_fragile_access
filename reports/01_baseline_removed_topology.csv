@@ -1,0 +1,3 @@
+topology_group,definition,removed_structure_count,share_removed_structures,total_length_m,major_highway_count,single_bridge_edge_count,single_osm_way_count,dry_landing_count_0,dry_landing_count_1,source
+stub_like,total_landing_node_count_less_than_2,98,0.490,10572.721372375411,0,,78,14,84,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv
+through_route_like,total_landing_node_count_at_least_2_but_dry_landing_count_less_than_2,102,0.510,6202.695094649030,45,85,96,24,78,data/processed/access/edited/della_runs/positive_layer_20260814_approach/bridge_structures_slr_0ft.csv

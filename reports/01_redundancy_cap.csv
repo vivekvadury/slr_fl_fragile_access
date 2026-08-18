@@ -1,0 +1,9 @@
+slr_ft,eligible_blocks,redundant_blocks,redundant_at_cap,redundant_at_cap_share,cap_value,source
+0,68521,50835,50835,1.0,2,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.csv
+1,68521,50797,50797,1.0,2,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.csv
+2,68521,50283,50283,1.0,2,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.csv
+3,68521,48937,48937,1.0,2,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.csv
+4,68521,47081,47081,1.0,2,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.csv
+5,68521,43028,43028,1.0,2,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.csv
+6,68521,35088,35088,1.0,2,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.csv
+all,479647,326049,326049,1.0,2,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.csv
