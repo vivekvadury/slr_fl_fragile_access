@@ -1,0 +1,114 @@
+record_type,bridge_rule,check,value,detail,verdict,slr_ft,unclassified_count,also_flagged_inundated_count,unclassified_pop20,unclassified_analysis_eligible_count
+run_summary,intersect,unique_blocks,70695,,PASS,,,,,
+run_summary,intersect,slr_levels,7,"0,1,2,3,4,5,6",PASS,,,,,
+run_summary,intersect,duplicate_block_slr_rows,0,,PASS,,,,,
+file_inventory,intersect,result_file,494865,"{""file_name"": ""block_access_flags_long.csv"", ""rows"": 494865, ""unique_slr_ft"": ""0,1,2,3,4,5,6""}",PASS,,,,,
+status_reassignment,intersect,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,0.0,,,,
+status_reassignment,intersect,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,1.0,,,,
+status_reassignment,intersect,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,2.0,,,,
+status_reassignment,intersect,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,3.0,,,,
+status_reassignment,intersect,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,4.0,,,,
+status_reassignment,intersect,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,5.0,,,,
+status_reassignment,intersect,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,6.0,,,,
+status_reassignment,intersect,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,0.0,,,,
+status_reassignment,intersect,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,1.0,,,,
+status_reassignment,intersect,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,2.0,,,,
+status_reassignment,intersect,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,3.0,,,,
+status_reassignment,intersect,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,4.0,,,,
+status_reassignment,intersect,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,5.0,,,,
+status_reassignment,intersect,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,6.0,,,,
+assertion,intersect,five_state_partition_within_analysis_universe,0,effective inundated > unclassified > isolated > redundant > fragile states must sum to 1,PASS,,,,,
+descriptive,intersect,five_state_partition_violations_outside_analysis_universe,0,outside analysis_eligible & pop20 > 0 & land_area_m2 > 0,PASS,,,,,
+assertion,intersect,five_state_baseline_partition_within_analysis_universe,0,recomputed baseline state must be exactly one of five states,PASS,,,,,
+descriptive,intersect,five_state_baseline_partition_violations_outside_analysis_universe,0,outside analysis_eligible & pop20 > 0 & land_area_m2 > 0,PASS,,,,,
+unclassified_descriptive,intersect,raw_unclassified_blocks,171,counts use block_centroid_unclassified before precedence,PASS,0.0,171.0,0.0,1847.0,0.0
+unclassified_descriptive,intersect,raw_unclassified_blocks,156,counts use block_centroid_unclassified before precedence,PASS,1.0,156.0,0.0,1847.0,0.0
+unclassified_descriptive,intersect,raw_unclassified_blocks,150,counts use block_centroid_unclassified before precedence,PASS,2.0,150.0,0.0,1847.0,0.0
+unclassified_descriptive,intersect,raw_unclassified_blocks,142,counts use block_centroid_unclassified before precedence,PASS,3.0,142.0,0.0,1847.0,0.0
+unclassified_descriptive,intersect,raw_unclassified_blocks,141,counts use block_centroid_unclassified before precedence,PASS,4.0,141.0,0.0,1847.0,0.0
+unclassified_descriptive,intersect,raw_unclassified_blocks,132,counts use block_centroid_unclassified before precedence,PASS,5.0,132.0,0.0,1847.0,0.0
+unclassified_descriptive,intersect,raw_unclassified_blocks,115,counts use block_centroid_unclassified before precedence,PASS,6.0,115.0,0.0,519.0,0.0
+analysis_universe_descriptive,intersect,baseline_blocks_total,70695,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,intersect,baseline_zero_land_area_blocks,2019,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,intersect,baseline_zero_population_blocks,15284,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,intersect,baseline_zero_land_and_zero_population_blocks,2002,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,intersect,baseline_analysis_eligible_before_population_filter,68521,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,intersect,baseline_analysis_universe_after_population_filter,55381,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+run_summary,approach,unique_blocks,70695,,PASS,,,,,
+run_summary,approach,slr_levels,7,"0,1,2,3,4,5,6",PASS,,,,,
+run_summary,approach,duplicate_block_slr_rows,0,,PASS,,,,,
+file_inventory,approach,result_file,494865,"{""file_name"": ""block_access_flags_long.csv"", ""rows"": 494865, ""unique_slr_ft"": ""0,1,2,3,4,5,6""}",PASS,,,,,
+status_reassignment,approach,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,0.0,,,,
+status_reassignment,approach,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,1.0,,,,
+status_reassignment,approach,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,2.0,,,,
+status_reassignment,approach,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,3.0,,,,
+status_reassignment,approach,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,4.0,,,,
+status_reassignment,approach,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,5.0,,,,
+status_reassignment,approach,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,6.0,,,,
+status_reassignment,approach,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,0.0,,,,
+status_reassignment,approach,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,1.0,,,,
+status_reassignment,approach,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,2.0,,,,
+status_reassignment,approach,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,3.0,,,,
+status_reassignment,approach,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,4.0,,,,
+status_reassignment,approach,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,5.0,,,,
+status_reassignment,approach,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,6.0,,,,
+assertion,approach,five_state_partition_within_analysis_universe,0,effective inundated > unclassified > isolated > redundant > fragile states must sum to 1,PASS,,,,,
+descriptive,approach,five_state_partition_violations_outside_analysis_universe,0,outside analysis_eligible & pop20 > 0 & land_area_m2 > 0,PASS,,,,,
+assertion,approach,five_state_baseline_partition_within_analysis_universe,0,recomputed baseline state must be exactly one of five states,PASS,,,,,
+descriptive,approach,five_state_baseline_partition_violations_outside_analysis_universe,0,outside analysis_eligible & pop20 > 0 & land_area_m2 > 0,PASS,,,,,
+unclassified_descriptive,approach,raw_unclassified_blocks,171,counts use block_centroid_unclassified before precedence,PASS,0.0,171.0,0.0,1847.0,0.0
+unclassified_descriptive,approach,raw_unclassified_blocks,156,counts use block_centroid_unclassified before precedence,PASS,1.0,156.0,0.0,1847.0,0.0
+unclassified_descriptive,approach,raw_unclassified_blocks,150,counts use block_centroid_unclassified before precedence,PASS,2.0,150.0,0.0,1847.0,0.0
+unclassified_descriptive,approach,raw_unclassified_blocks,142,counts use block_centroid_unclassified before precedence,PASS,3.0,142.0,0.0,1847.0,0.0
+unclassified_descriptive,approach,raw_unclassified_blocks,141,counts use block_centroid_unclassified before precedence,PASS,4.0,141.0,0.0,1847.0,0.0
+unclassified_descriptive,approach,raw_unclassified_blocks,132,counts use block_centroid_unclassified before precedence,PASS,5.0,132.0,0.0,1847.0,0.0
+unclassified_descriptive,approach,raw_unclassified_blocks,115,counts use block_centroid_unclassified before precedence,PASS,6.0,115.0,0.0,519.0,0.0
+analysis_universe_descriptive,approach,baseline_blocks_total,70695,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,approach,baseline_zero_land_area_blocks,2019,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,approach,baseline_zero_population_blocks,15284,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,approach,baseline_zero_land_and_zero_population_blocks,2002,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,approach,baseline_analysis_eligible_before_population_filter,68521,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,approach,baseline_analysis_universe_after_population_filter,55381,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+run_summary,retain,unique_blocks,70695,,PASS,,,,,
+run_summary,retain,slr_levels,7,"0,1,2,3,4,5,6",PASS,,,,,
+run_summary,retain,duplicate_block_slr_rows,0,,PASS,,,,,
+file_inventory,retain,result_file,494865,"{""file_name"": ""block_access_flags_long.csv"", ""rows"": 494865, ""unique_slr_ft"": ""0,1,2,3,4,5,6""}",PASS,,,,,
+status_reassignment,retain,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,0.0,,,,
+status_reassignment,retain,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,1.0,,,,
+status_reassignment,retain,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,2.0,,,,
+status_reassignment,retain,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,3.0,,,,
+status_reassignment,retain,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,4.0,,,,
+status_reassignment,retain,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,5.0,,,,
+status_reassignment,retain,scenario_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,6.0,,,,
+status_reassignment,retain,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,0.0,,,,
+status_reassignment,retain,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,1.0,,,,
+status_reassignment,retain,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,2.0,,,,
+status_reassignment,retain,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,3.0,,,,
+status_reassignment,retain,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,4.0,,,,
+status_reassignment,retain,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,5.0,,,,
+status_reassignment,retain,baseline_status_unclassified_to_inundated,0,input label overridden from flag precedence,PASS,6.0,,,,
+assertion,retain,five_state_partition_within_analysis_universe,0,effective inundated > unclassified > isolated > redundant > fragile states must sum to 1,PASS,,,,,
+descriptive,retain,five_state_partition_violations_outside_analysis_universe,0,outside analysis_eligible & pop20 > 0 & land_area_m2 > 0,PASS,,,,,
+assertion,retain,five_state_baseline_partition_within_analysis_universe,0,recomputed baseline state must be exactly one of five states,PASS,,,,,
+descriptive,retain,five_state_baseline_partition_violations_outside_analysis_universe,0,outside analysis_eligible & pop20 > 0 & land_area_m2 > 0,PASS,,,,,
+unclassified_descriptive,retain,raw_unclassified_blocks,171,counts use block_centroid_unclassified before precedence,PASS,0.0,171.0,0.0,1847.0,0.0
+unclassified_descriptive,retain,raw_unclassified_blocks,156,counts use block_centroid_unclassified before precedence,PASS,1.0,156.0,0.0,1847.0,0.0
+unclassified_descriptive,retain,raw_unclassified_blocks,150,counts use block_centroid_unclassified before precedence,PASS,2.0,150.0,0.0,1847.0,0.0
+unclassified_descriptive,retain,raw_unclassified_blocks,142,counts use block_centroid_unclassified before precedence,PASS,3.0,142.0,0.0,1847.0,0.0
+unclassified_descriptive,retain,raw_unclassified_blocks,141,counts use block_centroid_unclassified before precedence,PASS,4.0,141.0,0.0,1847.0,0.0
+unclassified_descriptive,retain,raw_unclassified_blocks,132,counts use block_centroid_unclassified before precedence,PASS,5.0,132.0,0.0,1847.0,0.0
+unclassified_descriptive,retain,raw_unclassified_blocks,115,counts use block_centroid_unclassified before precedence,PASS,6.0,115.0,0.0,519.0,0.0
+analysis_universe_descriptive,retain,baseline_blocks_total,70695,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,retain,baseline_zero_land_area_blocks,2019,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,retain,baseline_zero_population_blocks,15284,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,retain,baseline_zero_land_and_zero_population_blocks,2002,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,retain,baseline_analysis_eligible_before_population_filter,68521,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+analysis_universe_descriptive,retain,baseline_analysis_universe_after_population_filter,55381,zero-land and zero-population exclusions reported separately,PASS,0.0,,,,
+assertion,approach,identical_block_universe,0,symmetric_difference_vs_intersect; sample_saved=0,PASS,,,,,
+assertion,approach,identical_slr_levels,0,"reference=[0, 1, 2, 3, 4, 5, 6]; other=[0, 1, 2, 3, 4, 5, 6]",PASS,,,,,
+assertion,approach,identical_block_scenario_keys,0,symmetric_difference_vs_intersect; sample_saved=0,PASS,,,,,
+assertion,retain,identical_block_universe,0,symmetric_difference_vs_intersect; sample_saved=0,PASS,,,,,
+assertion,retain,identical_slr_levels,0,"reference=[0, 1, 2, 3, 4, 5, 6]; other=[0, 1, 2, 3, 4, 5, 6]",PASS,,,,,
+assertion,retain,identical_block_scenario_keys,0,symmetric_difference_vs_intersect; sample_saved=0,PASS,,,,,
+assertion,approach,identical_block_centroid_inundated,0,differences_vs_intersect,PASS,,,,,
+assertion,retain,identical_block_centroid_inundated,0,differences_vs_intersect,PASS,,,,,
