@@ -1,0 +1,22 @@
+applies_to_arms,slr_ft,county,total_blocks,unclassified_count,unclassified_rate_pct,total_population,unclassified_population,unclassified_population_share_pct,county_share_of_all_blocks_pct,county_share_of_unclassified_pct,representation_ratio,source
+approach|intersect|retain,0,Broward,20939,16,0.076412436,1944375,3,0.000154291,29.618784921,9.356725146,0.315905098,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,0,Miami-Dade,31622,68,0.215040162,2701767,1328,0.049153017,44.730178938,39.766081871,0.889021301,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,0,Palm Beach,18134,87,0.479761773,1492191,516,0.034580024,25.651036141,50.877192982,1.983436174,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,1,Broward,20939,16,0.076412436,1944375,3,0.000154291,29.618784921,10.256410256,0.346280588,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,1,Miami-Dade,31622,53,0.167604832,2701767,1328,0.049153017,44.730178938,33.974358974,0.759539975,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,1,Palm Beach,18134,87,0.479761773,1492191,516,0.034580024,25.651036141,55.769230769,2.174151191,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,2,Broward,20939,16,0.076412436,1944375,3,0.000154291,29.618784921,10.666666667,0.360131811,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,2,Miami-Dade,31622,47,0.148630700,2701767,1328,0.049153017,44.730178938,31.333333333,0.700496490,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,2,Palm Beach,18134,87,0.479761773,1492191,516,0.034580024,25.651036141,58.000000000,2.261117238,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,3,Broward,20939,16,0.076412436,1944375,3,0.000154291,29.618784921,11.267605634,0.380420928,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,3,Miami-Dade,31622,39,0.123331858,2701767,1328,0.049153017,44.730178938,27.464788732,0.614010259,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,3,Palm Beach,18134,87,0.479761773,1492191,516,0.034580024,25.651036141,61.267605634,2.388504125,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,4,Broward,20939,16,0.076412436,1944375,3,0.000154291,29.618784921,11.347517730,0.383118948,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,4,Miami-Dade,31622,38,0.120169502,2701767,1328,0.049153017,44.730178938,26.950354610,0.602509430,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,4,Palm Beach,18134,87,0.479761773,1492191,516,0.034580024,25.651036141,61.702127660,2.405443871,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,5,Broward,20939,16,0.076412436,1944375,3,0.000154291,29.618784921,12.121212121,0.409240695,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,5,Miami-Dade,31622,29,0.091708304,2701767,1328,0.049153017,44.730178938,21.969696970,0.491160498,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,5,Palm Beach,18134,87,0.479761773,1492191,516,0.034580024,25.651036141,65.909090909,2.569451407,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,6,Broward,20939,16,0.076412436,1944375,3,0.000154291,29.618784921,13.913043478,0.469737145,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,6,Miami-Dade,31622,12,0.037948264,2701767,0,0.000000000,44.730178938,10.434782609,0.233282827,reports/00_unclassified_prevalence.csv
+approach|intersect|retain,6,Palm Beach,18134,87,0.479761773,1492191,516,0.034580024,25.651036141,75.652173913,2.949283354,reports/00_unclassified_prevalence.csv

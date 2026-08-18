@@ -1,0 +1,7 @@
+arm,physical_file,format,slr_ft_values,n_rows,n_distinct_blocks,rows_per_slr_level,duplicate_pair_groups,rows_in_duplicate_pairs,duplicate_excess_rows,null_block_geoid,null_slr_ft,schema_columns,key_set_matches_other_format,source
+approach,block_access_flags_long.csv,CSV,0|1|2|3|4|5|6,494865,70695,70695,0,0,0,0,0,55,true,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.csv
+approach,block_access_flags_long.parquet,Parquet,0|1|2|3|4|5|6,494865,70695,70695,0,0,0,0,0,55,true,data/processed/access/edited/della_runs/positive_layer_20260814_approach/block_access_flags_long.parquet
+intersect,block_access_flags_long.csv,CSV,0|1|2|3|4|5|6,494865,70695,70695,0,0,0,0,0,55,true,data/processed/access/edited/della_runs/positive_layer_20260814_intersect/block_access_flags_long.csv
+intersect,block_access_flags_long.parquet,Parquet,0|1|2|3|4|5|6,494865,70695,70695,0,0,0,0,0,55,true,data/processed/access/edited/della_runs/positive_layer_20260814_intersect/block_access_flags_long.parquet
+retain,block_access_flags_long.csv,CSV,0|1|2|3|4|5|6,494865,70695,70695,0,0,0,0,0,55,true,data/processed/access/edited/della_runs/positive_layer_20260814_retain/block_access_flags_long.csv
+retain,block_access_flags_long.parquet,Parquet,0|1|2|3|4|5|6,494865,70695,70695,0,0,0,0,0,55,true,data/processed/access/edited/della_runs/positive_layer_20260814_retain/block_access_flags_long.parquet

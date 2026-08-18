@@ -1,0 +1,8 @@
+applies_to_arms,slr_ft,pearson_chi_square,df,p_value,cramers_v,n_blocks,source
+approach|intersect|retain,0,67.229494658,2,2.51942088133e-15,0.030837955,70695,reports/00_unclassified_county.csv
+approach|intersect|retain,1,79.121856881,2,6.59032874946e-18,0.033454449,70695,reports/00_unclassified_county.csv
+approach|intersect|retain,2,85.584235581,2,2.60387045900e-19,0.034793854,70695,reports/00_unclassified_county.csv
+approach|intersect|retain,3,96.025874117,2,1.40684540206e-21,0.036855286,70695,reports/00_unclassified_county.csv
+approach|intersect|retain,4,97.493327066,2,6.75449705279e-22,0.037135827,70695,reports/00_unclassified_county.csv
+approach|intersect|retain,5,112.543917280,2,3.64249426586e-25,0.039899428,70695,reports/00_unclassified_county.csv
+approach|intersect|retain,6,152.150344001,2,9.14055550598e-34,0.046391896,70695,reports/00_unclassified_county.csv
