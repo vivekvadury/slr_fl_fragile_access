@@ -1,14 +1,16 @@
 check,status,detail,source
-notebook_nbformat_write,PASS,"nbformat 5.10.4; 49 cells preserved; final SHA-256 ac988996a26f12fff8b01e4ab1fe693a83f4c5185ba7ea170e64064fa58f5e61",scripts/03_build_extension_dataset_and_memo.ipynb
-notebook_reparse_validate_compile,PASS,"immediate reparse and nbformat.validate passed; every code cell compiled",scripts/03_build_extension_dataset_and_memo.ipynb
+notebook_nbformat_write,PASS,"nbformat 5.10.4; 49 cells preserved; final complete-ACS approach SHA-256 83aaff011bef56899e16e0555f1cbc5bde3d5accbb0598b5dcc92ad8b249cb2f",scripts/03_build_extension_dataset_and_memo.ipynb
+notebook_reparse_validate_compile,PASS,"post-write reparse and nbformat.validate passed; every code cell compiled",scripts/03_build_extension_dataset_and_memo.ipynb
 stale_nonfigure_outputs,PASS,"22 stale text/table outputs were cleared only from rewritten setup/data cells after confirming none contained image MIME data; all cells and embedded figure outputs were preserved",scripts/03_build_extension_dataset_and_memo.ipynb cells 3-19
-notebook_core_all_arms,PASS,"cells 3-19 executed in memory; unique keys, levels, eligible universe, row-level five-state, block-group five-state, and transition assertions had zero failures",reports/02_arm_eligible_universe.csv
-notebook_full_execution,BLOCKED,"CENSUS_API_KEY is absent from process, user, and machine environments; the new explicit RuntimeError was observed before any API call",scripts/03_build_extension_dataset_and_memo.ipynb cell 4
-historical_census_key_removed,PASS,"no hardcoded historical key remains; credential must be rotated because it remains exposed in repository history",scripts/03_build_extension_dataset_and_memo.ipynb cell 4
-R_runtime,BLOCKED,"R and Rscript absent from PATH, Windows registry, conda environments, and WSL; no R model was fit",scripts/04_transition_models.R
-R_static_checks,PASS,"git diff --check and R-aware delimiter/string/comment scan passed; formulas, six covariates, county fixed effect, and SLR fixed effect unchanged",scripts/04_transition_models.R:429-438
-R_equivalent_data_invariants,PASS,"canonical Python audit found zero five-state partition failures and zero transition-risk failures in all three arms",reports/02_arm_eligible_universe.csv
+notebook_core_all_arms,PASS,"unique keys, levels, eligible universe, row-level five-state, block-group five-state, and transition assertions had zero failures",reports/02_arm_eligible_universe.csv
+notebook_full_execution,PASS,"approach executed end to end; every code cell completed and all arm-tagged outputs were written",scripts/03_build_extension_dataset_and_memo.ipynb
+spatial_export_panel,PASS,"eligible-only inner merge; 3942 block groups at each of slr_0ft through slr_6ft; no missing-SLR or empty layer; duplicated all_scenarios layer omits only its optional spatial index",outputs/spatial/slr_block_group_analysis_approach.gpkg
+ACS_county_completeness,PASS,"Broward 1121; Miami-Dade 1843; Palm Beach 982; total 3946; incomplete county responses now raise before merge/output",reports/02_acs_counts.csv
+historical_census_key_removed,PASS,"credential was supplied process-locally; no literal appears in the serialized notebook",scripts/03_build_extension_dataset_and_memo.ipynb cell 4
+R_runtime,PASS,"R 4.6.1 ucrt; tidyverse 2.0.0; fixest 0.14.2; marginaleffects 0.32.0; openxlsx 4.2.8.1",scripts/04_transition_models.R
+R_static_checks,PASS,"R parse and git diff --check passed; formulas, six covariates, county fixed effect, SLR fixed effect, weights, and bootstrap logic unchanged",scripts/04_transition_models.R:429-438
+R_risk_set_assertions,PASS,"eligible five-state partition passed all 27594 block-group/SLR rows; no transition risk-set assertion fired",outputs/tables/transition_sample_diagnostics_approach.csv
+R_smoke,PASS,"AME_BOOT_REPS=5; 42 AME rows; n_boot=5 and n_boot_fail=0 throughout; 42 clustered coefficient rows",outputs/tables/ame_bootstrap_results_approach.xlsx
 population_script_approach,PASS,"input eligibility/key/status assertions, redundant POP20 row and level audits, five-state decomposition, transition summaries, and cumulative nesting passed",outputs/tables/fig4_status_population_by_slr_approach.csv
-smoke_03_core_to_05,PASS,"ACS-independent notebook core produced the tagged block-level approach input and 05 completed through conda run in the exact pinned research-geo environment",data/processed/analysis/block_level_long_dataset_approach.csv
-smoke_04,NOT_RUN,"R unavailable; no coefficients or AMEs were fabricated",scripts/04_transition_models.R
-phase_2_clean,NO,"full 03 and 04 did not execute, so the Phase 3 prerequisite is not met",reports/02_runtime_and_validation.csv
+smoke_03_to_04_to_05,PASS,"full approach sequence completed on the complete-ACS eligible universe",reports/02_smoke_completion.csv
+phase_2_clean,YES,"all Phase 2 assertions and the full approach smoke completed; Phase 3 prerequisite is met",reports/02_runtime_and_validation.csv

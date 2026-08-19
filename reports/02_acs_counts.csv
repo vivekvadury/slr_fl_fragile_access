@@ -1,0 +1,5 @@
+county_fips,county_name,expected_block_groups,observed_block_groups,status,source
+011,Broward,1121,1121,PASS,scripts/03_build_extension_dataset_and_memo.ipynb cell 21
+086,Miami-Dade,1843,1843,PASS,scripts/03_build_extension_dataset_and_memo.ipynb cell 21
+099,Palm Beach,982,982,PASS,scripts/03_build_extension_dataset_and_memo.ipynb cell 21
+TOTAL,Tri-county,3946,3946,PASS,scripts/03_build_extension_dataset_and_memo.ipynb cell 21

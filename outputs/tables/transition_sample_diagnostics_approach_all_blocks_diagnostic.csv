@@ -1,0 +1,4 @@
+arm,filter,input_rows,input_block_groups,dropped_rows,dropped_block_groups,retained_rows,retained_block_groups
+approach,drop_na(all_of(MODEL_COVARIATES)),27622,3946,2394,342,25228,3604
+approach,baseline_redundant_n > 0,21624,3604,954,159,20670,3445
+approach,baseline_fragile_n > 0,21624,3604,2508,418,19116,3186

@@ -1,0 +1,13 @@
+metric,expected,observed,status,source
+eligible_blocks,68521,68521,PASS,data/processed/analysis/block_level_long_dataset_approach.csv
+eligible_population_pop20,6135688,6135688,PASS,data/processed/analysis/block_level_long_dataset_approach.csv
+baseline_fragile_blocks,17335,17335,PASS,outputs/tables/fig4_status_population_by_slr_approach.csv
+baseline_fragile_share,0.2529881350242991,0.2529881350242991,PASS,outputs/tables/fig4_status_population_by_slr_approach.csv
+block_group_slr_rows,27594,27594,PASS,data/processed/analysis/block_group_analysis_dataset_approach.csv
+block_groups,3942,3942,PASS,data/processed/analysis/block_group_analysis_dataset_approach.csv
+ACS_block_groups,3946,3946,PASS,reports/02_acs_counts.csv
+AME_rows,42,42,PASS,outputs/tables/ame_bootstrap_results_approach.xlsx
+AME_bootstrap_successes_per_row,5,5,PASS,outputs/tables/ame_bootstrap_results_approach.xlsx
+AME_bootstrap_failures_per_row,0,0,PASS,outputs/tables/ame_bootstrap_results_approach.xlsx
+coefficient_rows,42,42,PASS,outputs/tables/transition_model_coefficients_approach.csv
+population_audit_mismatches,0,0,PASS,scripts/05_population_figures.py:153-169

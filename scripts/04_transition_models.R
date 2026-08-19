@@ -127,6 +127,10 @@ SAMPLE_DIAGNOSTICS_PATH <- file.path(
   TABLE_DIR,
   sprintf("transition_sample_diagnostics_%s.csv", ARM)
 )
+COEFFICIENT_DIAGNOSTICS_PATH <- file.path(
+  TABLE_DIR,
+  sprintf("transition_model_coefficients_%s.csv", ARM)
+)
 
 CORE_COVARIATES <- c(
   "pct_black_nh",
@@ -638,6 +642,27 @@ fit_model_specs <- function(specs) {
   )
 }
 
+collect_coefficient_diagnostics <- function(models) {
+  purrr::imap_dfr(
+    models,
+    function(model, transition) {
+      coefficient_table <- as.data.frame(fixest::coeftable(model))
+      if (ncol(coefficient_table) < 4L) {
+        stop("Unexpected coefficient-table schema for transition: ", transition)
+      }
+      tibble(
+        arm = ARM,
+        transition = transition,
+        term = rownames(coefficient_table),
+        estimate = coefficient_table[[1]],
+        std.error = coefficient_table[[2]],
+        statistic = coefficient_table[[3]],
+        p.value = coefficient_table[[4]]
+      )
+    }
+  )
+}
+
 bootstrap_model_specs <- function(models, specs) {
   purrr::imap_dfr(
     models,
@@ -915,5 +940,8 @@ fragrisk_dat <- trans_dat %>%
 
 model_specs <- make_model_specs(redrisk_dat, fragrisk_dat)
 transition_models <- fit_model_specs(model_specs)
+coefficient_diagnostics <- collect_coefficient_diagnostics(transition_models)
+readr::write_csv(coefficient_diagnostics, COEFFICIENT_DIAGNOSTICS_PATH)
+message("Saved model coefficient diagnostics to: ", COEFFICIENT_DIAGNOSTICS_PATH)
 ame_boot_combined <- bootstrap_model_specs(transition_models, model_specs)
 write_ame_outputs(ame_boot_combined, transition_models, model_specs)

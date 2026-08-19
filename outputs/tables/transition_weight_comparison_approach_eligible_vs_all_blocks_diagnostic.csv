@@ -1,0 +1,6 @@
+metric,eligible,all_blocks,eligible_minus_all_blocks,pct_change
+complete_covariate_block_groups,3604,3604,0,0
+redundant_positive_block_groups,3442,3445,-3,-0.08708272859216255
+fragile_positive_block_groups,3178,3186,-8,-0.25109855618330196
+baseline_redundant_weight,46954,47512,-558,-1.1744401414379526
+baseline_fragile_weight,16114,16467,-353,-2.143681301997935

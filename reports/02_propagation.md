@@ -1,20 +1,35 @@
 # Phase 2 - Downstream propagation
 
-## Batch stop: Phase 2 is not clean
+## Outcome
 
-**STOP BEFORE PHASE 3.** The canonical data pass every notebook-core and equivalent
-risk-set invariant, but this host has no `CENSUS_API_KEY` and no R/Rscript runtime.
-Consequently, notebook 03 could not complete its ACS-dependent half and script 04 could
-not fit models. The ACS-independent notebook core and script 05 completed on the approach
-arm, but the Phase 3 prerequisite (all arms built through 03 and 04) is not met. No model
-coefficient or AME movement is inferred or fabricated. Source:
+**PASS.** The complete-ACS approach run finished through
+`03_build_extension_dataset_and_memo.ipynb` -> `04_transition_models.R` ->
+`05_population_figures.py`. All notebook universe/status assertions, R risk-set
+assertions, the five-rep AME smoke, and the population audits passed. The run produced
+42 AME rows, 42 clustered coefficient rows, and arm-tagged analysis, table, and figure
+outputs. Sources: `reports/02_runtime_and_validation.csv` and
+`reports/02_smoke_completion.csv`.
+
+## ACS retry and completeness repair
+
+The first full attempt encountered a Broward read timeout. The ACS fetch now allows three
+120-second attempts per variable chunk, retries transient failures with backoff, and raises
+instead of returning a partial county after the final attempt. It also asserts the expected
+county counts, unique block-group GEOIDs, and the tri-county total before demographic merge
+or output. Sources: `scripts/03_build_extension_dataset_and_memo.ipynb:2748-2829` and
 `reports/02_runtime_and_validation.csv`.
 
-The notebook now fails clearly when `CENSUS_API_KEY` is unset. The exposed historical key
-has been removed from the notebook, but it must be rotated because exposure in repository
-history is not repaired by deleting the current literal. Source:
-`reports/02_runtime_and_validation.csv`; `scripts/03_build_extension_dataset_and_memo.ipynb`
-cell 4.
+The completed pull contains exactly **3,946 source ACS block groups**: 1,121 in Broward,
+1,843 in Miami-Dade, and 982 in Palm Beach. The analysis has **3,942 eligible block
+groups** because four block groups contain no eligible block after the decided universe
+filter. Sources: `reports/02_acs_counts.csv`, `reports/02_smoke_completion.csv`, and
+`reports/02_arm_eligible_universe.csv`.
+
+The Census credential is read only from `os.environ["CENSUS_API_KEY"]`; the execution used
+a process-local credential and the serialized notebook contains no literal key. The key
+previously exposed in repository history still must be rotated. Sources:
+`scripts/03_build_extension_dataset_and_memo.ipynb:198-205` and
+`reports/02_runtime_and_validation.csv`.
 
 ## Changes made
 
@@ -22,87 +37,92 @@ cell 4.
 
 - `ARM` replaces the date/run-directory switch, defaults to `approach`, and resolves to
   `positive_layer_20260814_{ARM}`. Every generated CSV, PNG, PDF, and GeoPackage is tagged
-  by arm. Source: `reports/02_change_log.csv`.
+  by arm. Sources: `scripts/03_build_extension_dataset_and_memo.ipynb:179-182` and
+  `reports/02_change_log.csv`.
 - The notebook reads exactly one `block_access_flags_long.parquet`. Six-file discovery,
   cross-file baseline comparison, stacking, and duplicate dropping are gone. Assertions
   require one logical Parquet, unique `(block_geoid, slr_ft)` keys, levels 0-6, 70,695
-  source blocks, and a complete seven-level panel. Source: `reports/02_change_log.csv`;
-  `scripts/03_build_extension_dataset_and_memo.ipynb` cells 6-7.
+  source blocks, and a complete seven-level panel. Sources:
+  `scripts/03_build_extension_dataset_and_memo.ipynb:419-453` and
+  `reports/02_change_log.csv`.
 - `analysis_eligible == True` is applied once near the top; there is no `pop20 > 0`
-  filter. The producer-supplied `pop20` supplies population weights. Source:
-  `reports/02_change_log.csv`; `scripts/03_build_extension_dataset_and_memo.ipynb`
-  cells 9-10.
-- Status is now an ordered five-level categorical in the order `unclassified`,
-  `inundated`, `isolated`, `fragile`, `redundant`; unknown or missing eligible statuses
-  fail an assertion. `unclassified` is included in the count/share aggregation and Figure
-  1 palette, and five status counts must sum to each block-group/SLR eligible denominator.
-  Source: `reports/02_change_log.csv`; `scripts/03_build_extension_dataset_and_memo.ipynb`
-  cells 4, 12, 18, and 25.
-- Block-group output now carries `bridge_rule_applied`, the retained-nearby-structure
-  share, the share with `origin_in_lcc == False`, and shares by observed
+  filter. Producer-supplied `pop20` supplies population weights. The existing
+  `baseline_baseline_shortest_path_distance_m` is read as-is, with no second variant.
+  Sources: `scripts/03_build_extension_dataset_and_memo.ipynb:561-619` and
+  `reports/02_change_log.csv`.
+- Status is an ordered five-level categorical in the order `unclassified`, `inundated`,
+  `isolated`, `fragile`, `redundant`. Unknown or missing eligible statuses fail an
+  assertion; `unclassified` is included in count/share aggregation and the Figure 1
+  palette; five status counts must sum to every block-group/SLR eligible denominator.
+  Sources: `scripts/03_build_extension_dataset_and_memo.ipynb:220`,
+  `scripts/03_build_extension_dataset_and_memo.ipynb:994-997`, and
+  `reports/02_change_log.csv`.
+- Block-group output carries `bridge_rule_applied`, the retained-nearby-structure share,
+  the share with `origin_in_lcc == False`, and shares by observed
   `origin_geometry_method`. Both scenario and baseline five-state counts are retained for
-  the model risk-set checks. Source: `reports/02_change_log.csv`.
-- The existing `baseline_baseline_shortest_path_distance_m` is read as-is and no second
-  variant is created. Source: `reports/02_change_log.csv`;
-  `scripts/03_build_extension_dataset_and_memo.ipynb` cells 7 and 12.
+  model risk-set checks. Source: `reports/02_change_log.csv`.
 
 The notebook was written only through `nbformat` 5.10.4. All 49 cells and all embedded
-figure outputs were preserved. Twenty-two stale text/table outputs attached to the
-rewritten setup/data cells were cleared after confirming that none contained image MIME
-data; this removes the retired filenames from the rendered notebook without deleting a
-cell or figure. An immediate reparse, `nbformat.validate()`, and compilation of every code
-cell passed. Its final SHA-256 is
-`ac988996a26f12fff8b01e4ab1fe693a83f4c5185ba7ea170e64064fa58f5e61`.
+figure outputs were preserved. Twenty-two stale text/table outputs attached to rewritten
+setup/data cells were cleared only after confirming that none contained image MIME data.
+The final complete-ACS notebook reparsed, passed `nbformat.validate()`, and every code cell
+compiled; its SHA-256 is
+`83aaff011bef56899e16e0555f1cbc5bde3d5accbb0598b5dcc92ad8b249cb2f`.
 Source: `reports/02_runtime_and_validation.csv`.
+
+The final spatial export contains exactly `slr_0ft` through `slr_6ft` plus
+`all_scenarios`; there is no missing-SLR `slr_nanft` layer. Each scenario layer contains
+the same 3,942 eligible block groups. The seven per-SLR layers retain spatial indexes;
+the duplicated `all_scenarios` layer omits only its optional index so the GeoPackage
+remains below the Git hosting limit without changing any feature or value. Sources:
+`outputs/spatial/slr_block_group_analysis_approach.gpkg` and
+`reports/02_runtime_and_validation.csv`.
 
 ### Transition models 04
 
 The script accepts `--arm`/`BRIDGE_ARM` and a positional, `--data`, or
-`TRANSITION_DATA_PATH` input override; approach is the default. Model workbooks, LaTeX,
-and sample diagnostics are arm-tagged. Source: `scripts/04_transition_models.R:24-130`.
+`TRANSITION_DATA_PATH` input override; approach is the default. AME workbooks, LaTeX,
+sample diagnostics, and coefficient diagnostics are arm-tagged. Sources:
+`scripts/04_transition_models.R:24-133`, `scripts/04_transition_models.R:645-661`, and
+`scripts/04_transition_models.R:943-947`.
 
 `prepare_transition_data` now:
 
 1. asserts the five eligible states sum to `total_blocks` for every block-group/SLR row;
 2. uses `baseline_total_blocks` to verify the baseline partition and stable universe;
-3. defines redundant and fragile grouped-binomial weights from the corresponding baseline
-   state counts inside that verified eligible universe; and
-4. asserts all transition numerators are nonnegative integers within their state-specific
+3. defines redundant and fragile grouped-binomial weights from their corresponding
+   baseline state counts inside the verified eligible universe; and
+4. asserts all transition numerators are nonnegative integers within those state-specific
    risk sets.
 
-Sources: `scripts/04_transition_models.R:151-254` and
-`scripts/04_transition_models.R:275-397`.
+Sources: `scripts/04_transition_models.R:193-266` and
+`scripts/04_transition_models.R:279-398`.
 
-The six covariates, county fixed effect, SLR fixed effect, binomial family, clustered
-standard errors, and transition specifications are unchanged. Source:
-`scripts/04_transition_models.R:431`; `scripts/04_transition_models.R:501`;
-`reports/02_runtime_and_validation.csv`.
-
-The script now writes counts of block groups and rows removed by covariate completeness and
-the two positive-risk filters. Because R could not run, the report-ready preflight using
-the canonical eligible approach groups and the repository's existing ACS demographic
-columns finds: 338 block groups removed by covariate completeness, 162 then removed from
-the redundant risk set, and 426 then removed from the fragile risk set. These are a
-preflight audit, not R output. Source: `reports/02_sample_diagnostics_preflight.csv`.
+The six covariates, binomial family, county fixed effect, SLR-scenario fixed effect,
+transition outcomes, and block-group clustered coefficient standard errors are unchanged.
+Sources: `scripts/04_transition_models.R:135-153` and
+`scripts/04_transition_models.R:433-444`.
 
 ### Population figures 05
 
-The script defaults to approach, reads only
-`block_level_long_dataset_{arm}.csv`, requires every row to be eligible, validates unique
-keys and all seven levels, and represents all five statuses explicitly. The input `pop20`
-is authoritative. The separate raw Census block join remains in place but is marked
-redundant and now acts only as an audit; row-level values and totals at every SLR level
-must agree before outputs are written. Sources: `scripts/05_population_figures.py:35-194`.
+The script defaults to approach and reads only
+`block_level_long_dataset_{arm}.csv`. It requires every row to be eligible, validates
+unique keys and all seven levels, and represents all five statuses explicitly. The input
+`pop20` is authoritative. The separate raw Census block join remains in place but is
+marked redundant and acts only as an audit; row-level values and totals at every SLR level
+must agree before outputs are written. Sources: `scripts/05_population_figures.py:35-194`
+and `reports/02_smoke_completion.csv`.
 
-All three population tables and both PNG/PDF figure pairs are arm-tagged. Source:
-`scripts/05_population_figures.py:218-355`; the generated approach files under
+All three population tables and both PNG/PDF figure pairs are arm-tagged. Sources:
+`scripts/05_population_figures.py:218-355` and generated approach files under
 `outputs/tables/fig4_*_approach.csv` and `outputs/figures/fig4*_approach.*`.
 
-## Universe and reconciliation
+## Universe and smoke results
 
-All three arms have the same eligible universe at all seven levels: **68,521 blocks and
-6,135,688 people**, retaining zero-population eligible blocks. Source:
-`reports/02_arm_eligible_universe.csv`.
+All three arms have the same eligible universe at every SLR level: **68,521 blocks and
+6,135,688 people**, retaining eligible zero-population blocks. The approach output contains
+479,647 block/SLR rows and 27,594 block-group/SLR rows. Sources:
+`reports/02_arm_eligible_universe.csv` and `reports/02_smoke_completion.csv`.
 
 At baseline, the one-time filter removes:
 
@@ -114,30 +134,11 @@ At baseline, the one-time filter removes:
 
 Source: `outputs/tables/eligibility_exclusions_approach.csv`.
 
-The approach eligible-universe baseline fragile share is **17,335 / 68,521 = 0.252988**.
-It is its own estimate, between but not reproducing the legacy all-block value 0.2469
-(70,695 blocks) and legacy `pop20 > 0` value 0.2585 (55,411 blocks). The difference is the
-2,174 exclusions above, not a populated-block restriction. Source:
-`reports/02_universe_reconciliation.csv`;
-`outputs/tables/eligibility_exclusions_approach.csv`.
-
-## Risk-set weight change
-
-On approach, filtering to the decided universe changes the aggregate baseline redundant
-weight from 51,452 to 50,835, a reduction of 617 (1.20%) across 435 block groups. The
-fragile weight changes from 17,729 to 17,335, a reduction of 394 (2.22%) across 269 block
-groups. The corresponding reductions are 1.21%/2.20% under intersect and 1.20%/2.23%
-under retain. Source: `reports/02_risk_set_weight_changes.csv`.
-
-Whether any coefficient or AME moves cannot be measured on this host because R is absent.
-No substitute-language fit was attempted. Source: `reports/02_runtime_and_validation.csv`.
-
-## Approach smoke results
-
-The ACS-independent notebook core ran through block-group and tract aggregation and wrote
-the arm-tagged block-level input. Script 05 then completed in the exact pinned
-`research-geo` conda environment; the redundant POP20 audit agreed block-by-block and by
-SLR level. The model step did not run. Source: `reports/02_runtime_and_validation.csv`.
+The approach eligible-universe baseline fragile share remains
+**17,335 / 68,521 = 0.252988 (25.2988%)**. This is its own estimate, between but not
+reproducing the legacy all-block value 0.2469 (70,695 blocks) and legacy `pop20 > 0`
+value 0.2585 (55,411 blocks). Sources: `reports/02_universe_reconciliation.csv` and
+`outputs/tables/fig4_status_population_by_slr_approach.csv`.
 
 Five-state eligible-block distribution:
 
@@ -151,21 +152,102 @@ Five-state eligible-block distribution:
 
 Source: `outputs/tables/fig4_status_population_by_slr_approach.csv`.
 
-The non-inundation pathway share is **69.7816% at 2 ft** and **37.5678% at 6 ft** on
-approach. Source: `outputs/tables/transition_summary_by_slr_approach.csv`.
+The approach non-inundation pathway share is **69.7816% at 2 ft** and **37.5678% at
+6 ft**. Source: `outputs/tables/transition_summary_by_slr_approach.csv`.
 
-No notebook-core assertion fired for status vocabulary, the eligible universe, five-state
-closure, or transition denominators in any arm. The equivalent canonical audit also found
-zero failures for the new model risk-set invariants. The R assertions themselves did not
-execute. Source: `reports/02_runtime_and_validation.csv`.
+## Risk sets and estimation samples
 
-## Required resume conditions
+Before demographic completeness filtering, the raw canonical approach baseline weights
+change as follows when the decided universe is applied:
 
-To complete Phase 2 and unlock Phases 3-5, rerun from Phase 2 smoke after both:
+| Risk set | All blocks | Eligible | Eligible - all | Reduction | Block groups changed |
+|---|---:|---:|---:|---:|---:|
+| baseline redundant | 51,452 | 50,835 | -617 | 1.1992% | 435 |
+| baseline fragile | 17,729 | 17,335 | -394 | 2.2223% | 269 |
 
-1. `CENSUS_API_KEY` is supplied in the execution environment; and
-2. an existing compatible R runtime with the script's declared packages is made available
-   without changing the pinned Python stack.
+Source: `reports/02_risk_set_weight_changes.csv`.
 
-Until then, Phases 3-5 are intentionally not started. Source:
-`reports/02_runtime_and_validation.csv`.
+Actual approach model attrition is:
+
+| Filter | Input rows / groups | Dropped rows / groups | Retained rows / groups |
+|---|---:|---:|---:|
+| Complete six-covariate cases | 27,594 / 3,942 | 2,366 / 338 | 25,228 / 3,604 |
+| `baseline_redundant_n > 0` after removing 0 ft | 21,624 / 3,604 | 972 / 162 | 20,652 / 3,442 |
+| `baseline_fragile_n > 0` after removing 0 ft | 21,624 / 3,604 | 2,556 / 426 | 19,068 / 3,178 |
+
+Source: `outputs/tables/transition_sample_diagnostics_approach.csv`.
+
+## Controlled all-block versus eligible coefficient diagnostic
+
+The controlled diagnostic holds the canonical approach arm, demographics, six
+covariates, model formulas, fixed effects, and estimation code fixed, changing only the
+all-block versus eligible aggregation/risk sets. After the common complete-covariate
+filter, the redundant weight is 47,512 all-block versus 46,954 eligible (-558), and the
+fragile weight is 16,467 versus 16,114 eligible (-353). Source:
+`outputs/tables/transition_weight_comparison_approach_eligible_vs_all_blocks_diagnostic.csv`.
+
+Both controlled fits used `AME_BOOT_REPS=5` for the plumbing diagnostic. The coefficient
+comparison below uses the models' block-group-clustered coefficient standard errors and
+p-values, not the five-draw AME bootstrap p-values. Sources:
+`outputs/tables/ame_bootstrap_results_approach_all_blocks_diagnostic.xlsx`,
+`outputs/tables/ame_bootstrap_results_approach_eligible_diagnostic.xlsx`, and
+`outputs/tables/transition_model_coefficient_comparison_approach_eligible_vs_all_blocks_diagnostic.csv`.
+
+Across 42 coefficients, there is one sign flip: the `no_vehicle_share` coefficient for
+Redundant -> Worse moves from -0.002376 to +0.001813, but is null in both fits
+(p=0.9652 and p=0.9735). There is one p=0.05 threshold loss: log median income for
+Redundant -> Isolated moves from +0.132922 (p=0.04961) to +0.132224 (p=0.05056).
+No other sign or p=0.05 classification changes. Source:
+`outputs/tables/transition_model_coefficient_comparison_approach_eligible_vs_all_blocks_diagnostic.csv`.
+
+The largest Black-coefficient movement is for Fragile -> Inundated: -0.656766 all-block
+to -0.698637 eligible, a -0.041872 change (6.3754% in magnitude relative to the all-block
+coefficient). All 14 Black/Hispanic coefficients remain negative and significant at
+p<0.05 in both controlled fits. Thus the universe/risk-weight change does not alter the
+racial-composition sign or significance pattern in this diagnostic. Source:
+`outputs/tables/transition_model_coefficient_comparison_approach_eligible_vs_all_blocks_diagnostic.csv`.
+
+## Combined legacy-to-current AME smoke comparison
+
+This comparison combines multiple changes: the untagged legacy all-block analysis versus
+the canonical approach arm on the eligible universe. It does **not** isolate the universe
+or bridge rule. The source workbooks have the same 42 unique `(transition, term)` keys.
+The old workbook uses 199 successful bootstrap replications; the current smoke workbook
+uses five. AME point-estimate differences are exact for these fits, but p-value and
+significance comparisons are **non-inferential smoke diagnostics** because the bootstrap
+replication counts differ and five replications are inadequate for inference. Source:
+`reports/02_ame_combined_legacy_to_approach_smoke_comparison.csv`.
+
+The largest absolute AME movements are:
+
+| Transition / term | Legacy AME | Current smoke AME | Change | Relative magnitude |
+|---|---:|---:|---:|---:|
+| Fragile -> Worse / age 65+ | 0.035274 | 0.022183 | -0.013091 | 37.11% |
+| Fragile -> Worse / renter share | 0.061287 | 0.050975 | -0.010312 | 16.83% |
+| Fragile -> Isolated / age 65+ | 0.017634 | 0.010926 | -0.006708 | 38.04% |
+| Fragile -> Inundated / age 65+ | 0.018513 | 0.011925 | -0.006588 | 35.58% |
+| Fragile -> Isolated / renter share | 0.023549 | 0.017370 | -0.006179 | 26.24% |
+
+Source: `reports/02_ame_combined_legacy_to_approach_smoke_comparison.csv`.
+
+Two combined-comparison AMEs flip sign, both while nonsignificant in both artifacts:
+Redundant -> Inundated / log income (-0.000915 to +0.002317) and Redundant -> Worse /
+no-vehicle share (-0.002137 to +0.000126). The smoke-only p<0.05 classification gains are
+Redundant -> Isolated / log income and Redundant -> Worse / log income; Fragile ->
+Inundated / log income has a smoke-only loss. All 14 Black/Hispanic AMEs remain negative
+and smoke-significant, with no racial sign flip. These p-value statements are descriptive
+of the five-rep smoke only. Source:
+`reports/02_ame_combined_legacy_to_approach_smoke_comparison.csv`.
+
+## Runtime and final validation
+
+The model run used R 4.6.1 with tidyverse 2.0.0, fixest 0.14.2,
+marginaleffects 0.32.0, and openxlsx 4.2.8.1. The R script parsed, the model specification
+remained unchanged, all 27,594 eligible block-group/SLR risk-set rows passed, all 42 AME
+rows obtained five successful and zero failed replications, and all 42 clustered
+coefficient rows were written. Sources: `reports/02_runtime_and_validation.csv` and
+`reports/02_smoke_completion.csv`.
+
+The complete approach pipeline is clean: every notebook code cell completed, no status,
+universe, transition, or risk-set assertion fired, and the population join agreed both
+row-by-row and by SLR level. Source: `reports/02_runtime_and_validation.csv`.
