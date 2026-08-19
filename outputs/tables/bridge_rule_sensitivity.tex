@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+\centering
+\caption{Sensitivity of access-loss measures to the bridge-removal rule}
+\label{tab:bridge-rule-sensitivity}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lrrrrrrr}
+\hline
+Rule & \shortstack{Baseline fragile\\share} & \shortstack{Newly fragile\\2 ft} & \shortstack{Newly fragile\\4 ft} & \shortstack{Newly fragile\\6 ft} & \shortstack{Newly affected\\population, 6 ft} & \shortstack{Non-inundation\\share, 2 ft} & \shortstack{Non-inundation\\share, 6 ft} \\
+\hline
+Intersect$^{a}$ & 25.68\% & 214 & 780 & 1,323 & 2,066,483 & 69.03\% & 38.61\% \\
+Approach$^{b}$  & 25.30\% & 203 & 731 & 1,376 & 2,058,681 & 69.78\% & 37.57\% \\
+Retain$^{c}$    & 25.33\% & 203 & 732 & 1,377 & 2,058,736 & 70.00\% & 37.57\% \\
+\hline
+\end{tabular}
+
+\begin{minipage}{0.99\linewidth}
+\footnotesize
+\textit{Notes:} Results use blocks with \texttt{analysis\_eligible == True}; eligible zero-population blocks remain in block denominators, and population totals use \texttt{pop20}. Newly affected population is the population in the mutually exclusive newly fragile, newly isolated, or newly inundated categories. The non-inundation share is newly fragile plus newly isolated blocks divided by all newly affected blocks. $^{a}$Intersect removes bridge edges wherever inundation geometrically intersects them. $^{b}$Approach retains a bridge structure when at least two landing nodes remain dry. $^{c}$Retain never removes bridge structures.
+\end{minipage}
+\end{table}

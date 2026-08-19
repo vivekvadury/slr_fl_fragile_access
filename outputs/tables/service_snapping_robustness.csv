@@ -1,0 +1,16 @@
+metric,value,unit,expected_match,source
+total_services,2163,count,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_2ecc_assignments.csv
+initially_singleton_services_all,569,count,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_2ecc_assignments.csv
+initially_singleton_share_all,26.306056403144,percent,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_2ecc_assignments.csv
+fire_station_services,324,count,not_stated,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_2ecc_assignments.csv
+initially_singleton_fire_stations,136,count,not_stated,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_2ecc_assignments.csv
+initially_singleton_share_fire_stations,41.975308641975,percent,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_2ecc_assignments.csv
+school_services,1839,count,not_stated,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_2ecc_assignments.csv
+initially_singleton_schools,433,count,not_stated,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_2ecc_assignments.csv
+initially_singleton_share_schools,23.545405111474,percent,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_2ecc_assignments.csv
+recovered_singleton_services,566,count,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_resnapping.csv
+recovered_singleton_share,99.472759226714,percent,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_resnapping.csv
+unrecoverable_singleton_services,3,count,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_resnapping.csv
+added_snap_distance_median,13.496881187156323,meters,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_resnapping.csv
+added_snap_distance_p90,38.9584878618538,meters,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_resnapping.csv
+added_snap_distance_max,582.0724001822269,meters,yes,data/processed/access/edited/2026-04-03_run/diagnostics/validity/service_resnapping.csv
