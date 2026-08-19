@@ -1,0 +1,4 @@
+arm,filter,input_rows,input_block_groups,dropped_rows,dropped_block_groups,retained_rows,retained_block_groups
+intersect,drop_na(all_of(MODEL_COVARIATES)),27594,3942,2366,338,25228,3604
+intersect,baseline_redundant_n > 0,21624,3604,1146,191,20478,3413
+intersect,baseline_fragile_n > 0,21624,3604,2520,420,19104,3184

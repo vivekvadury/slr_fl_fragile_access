@@ -1,0 +1,2 @@
+criterion,deferred_dry_landing_trigger_met,driving_comparison,driving_slr_ft,driving_variable,driving_standardized_mean_difference,driving_absolute_standardized_mean_difference,driving_differing_nonmissing_blocks,assessment,source
+any prespecified covariate has |SMD| >= 0.20 with >=100 nonmissing differing blocks,True,approach_vs_intersect,0,log_median_income,0.729050920995,0.729050920995,668,demographically distinctive subset detected; deferred dry-landing validity audit is triggered but was not run,reports/03_disagreement_demographic_comparison.csv

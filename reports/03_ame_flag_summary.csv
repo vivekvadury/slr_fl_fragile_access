@@ -1,0 +1,12 @@
+metric,status,count,denominator,affected_transition_terms,interpretation,source
+any_sign_flip_across_arms,FLAG,1,42,Redundant -> Worse :: z_no_vehicle_share,At least one arm changes the AME sign.,reports/03_ame_all_arm_comparison.csv
+any_p_lt_0_05_classification_difference,FLAG,6,42,Redundant -> Fragile :: z_log_median_income | Redundant -> Isolated :: z_log_median_income | Redundant -> Isolated :: z_no_vehicle_share | Fragile -> Isolated :: z_log_median_income | Fragile -> Isolated :: z_no_vehicle_share | Fragile -> Worse :: z_log_median_income,At least one arm changes the p<0.05 classification.,reports/03_ame_all_arm_comparison.csv
+approach_vs_intersect_sign_flip,FLAG,1,42,Redundant -> Worse :: z_no_vehicle_share,Sign comparison between approach and intersect.,reports/03_ame_all_arm_comparison.csv
+approach_significance_lost_in_intersect,FLAG,4,42,Redundant -> Fragile :: z_log_median_income | Redundant -> Isolated :: z_log_median_income | Fragile -> Isolated :: z_log_median_income | Fragile -> Worse :: z_log_median_income,AME is p<0.05 under approach but not intersect.,reports/03_ame_all_arm_comparison.csv
+approach_significance_gained_in_intersect,FLAG,2,42,Redundant -> Isolated :: z_no_vehicle_share | Fragile -> Isolated :: z_no_vehicle_share,AME is not p<0.05 under approach but is under intersect.,reports/03_ame_all_arm_comparison.csv
+approach_vs_retain_sign_flip,PASS,0,42,,Sign comparison between approach and retain.,reports/03_ame_all_arm_comparison.csv
+approach_significance_lost_in_retain,PASS,0,42,,AME is p<0.05 under approach but not retain.,reports/03_ame_all_arm_comparison.csv
+approach_significance_gained_in_retain,PASS,0,42,,AME is not p<0.05 under approach but is under retain.,reports/03_ame_all_arm_comparison.csv
+black_hispanic_sign_flip,PASS,0,14,,Black/Hispanic AME sign stability across seven transitions and three arms.,reports/03_ame_all_arm_comparison.csv
+black_hispanic_p_lt_0_05_difference,PASS,0,14,,Black/Hispanic p<0.05 classification stability across arms.,reports/03_ame_all_arm_comparison.csv
+rq3_racial_reversal_survives,PASS,14,14,,All 14 Black/Hispanic transition AMEs are negative and p<0.05 in all three arms.,reports/03_ame_all_arm_comparison.csv
