@@ -1,0 +1,2 @@
+arm,slr_ft,n_block_groups,metric_a,metric_b,n_not_close,max_abs_difference,source
+approach,3,3942,delta_fragile_or_worse,share_lost_redundancy,0,2.220446049250313e-16,data/processed/analysis/block_group_analysis_dataset_approach.csv
