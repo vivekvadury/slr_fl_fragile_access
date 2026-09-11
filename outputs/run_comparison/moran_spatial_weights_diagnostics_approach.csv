@@ -1,0 +1,3 @@
+"risk_family","n_models","n_scenarios","n_block_groups","fixed_across_scenarios","weights_method","full_graph_units","full_queen_islands","full_graph_islands","subset_islands","subset_components"
+"redundant",4,6,3442,TRUE,"symmetric_k6_fallback",3942,1,0,0,4
+"fragile",3,6,3178,TRUE,"symmetric_k6_fallback",3942,1,0,0,3

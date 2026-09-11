@@ -10,6 +10,14 @@
 #
 # Runtime controls:
 # - BRIDGE_ARM selects approach, intersect, or retain; default is approach.
+# - MODEL_SPEC selects demographic_only (default) or with_physical.
+# - CONLEY_CUTOFF_KM optionally adds Conley/HAC standard errors while retaining
+#   the existing block-group-clustered and cluster-bootstrap standard errors.
+# - AME_POP_WEIGHT, when set (1/true, or an explicit column name; the shorthand
+#   resolves to eligible_pop20), additionally writes a population-weighted AME
+#   table to *_popweighted.{xlsx,tex}. The model fit is unchanged; only the
+#   avg_slopes() averaging is weighted so each block group counts in proportion
+#   to its eligible population rather than once. It does not replace Table 2.
 # - TRANSITION_DATA_PATH overrides the arm-tagged input dataset.
 # - The input path may also be supplied positionally or with --data; --arm
 #   overrides BRIDGE_ARM. Examples:
@@ -21,6 +29,16 @@ library(fixest)
 library(marginaleffects)
 library(openxlsx)
 
+script_file_argument <- grep(
+  "^--file=", commandArgs(trailingOnly = FALSE), value = TRUE
+)
+SCRIPT_DIR <- if (length(script_file_argument) == 1L) {
+  dirname(normalizePath(sub("^--file=", "", script_file_argument)))
+} else {
+  normalizePath("scripts")
+}
+source(file.path(SCRIPT_DIR, "04_shared_model_spec.R"))
+
 VALID_ARMS <- c("intersect", "approach", "retain")
 
 parse_runtime_options <- function(args = commandArgs(trailingOnly = TRUE)) {
@@ -30,6 +48,9 @@ parse_runtime_options <- function(args = commandArgs(trailingOnly = TRUE)) {
   data_path <- Sys.getenv("TRANSITION_DATA_PATH", unset = "")
   cli_data_path <- ""
   positional <- character()
+  model_spec <- Sys.getenv("MODEL_SPEC", unset = "demographic_only")
+  conley_text <- Sys.getenv("CONLEY_CUTOFF_KM", unset = "")
+  pop_weight_text <- Sys.getenv("AME_POP_WEIGHT", unset = "")
 
   i <- 1L
   while (i <= length(args)) {
@@ -99,6 +120,27 @@ parse_runtime_options <- function(args = commandArgs(trailingOnly = TRUE)) {
       paste(VALID_ARMS, collapse = ", "), "."
     )
   }
+  model_spec <- validate_model_spec(model_spec)
+  conley_cutoff_km <- NULL
+  if (nzchar(conley_text)) {
+    conley_cutoff_km <- suppressWarnings(as.numeric(conley_text))
+    if (
+      length(conley_cutoff_km) != 1L || is.na(conley_cutoff_km) ||
+        !is.finite(conley_cutoff_km) || conley_cutoff_km <= 0
+    ) {
+      stop("CONLEY_CUTOFF_KM must be a positive finite number when set.")
+    }
+  }
+  pop_weight_var <- NULL
+  if (nzchar(pop_weight_text)) {
+    pop_weight_var <- if (
+      tolower(pop_weight_text) %in% c("1", "true", "yes", "on")
+    ) {
+      "eligible_pop20"
+    } else {
+      pop_weight_text
+    }
+  }
   if (!nzchar(data_path)) {
     data_path <- file.path(
       "data",
@@ -108,49 +150,64 @@ parse_runtime_options <- function(args = commandArgs(trailingOnly = TRUE)) {
     )
   }
 
-  list(arm = arm, data_path = data_path)
+  list(
+    arm = arm,
+    data_path = data_path,
+    model_spec = model_spec,
+    conley_cutoff_km = conley_cutoff_km,
+    pop_weight_var = pop_weight_var
+  )
 }
 
 RUN_OPTIONS <- parse_runtime_options()
 ARM <- RUN_OPTIONS$arm
 DATA_PATH <- RUN_OPTIONS$data_path
+MODEL_SPEC <- RUN_OPTIONS$model_spec
+CONLEY_CUTOFF_KM <- RUN_OPTIONS$conley_cutoff_km
+POP_WEIGHT_VAR <- RUN_OPTIONS$pop_weight_var
 TABLE_DIR <- file.path("outputs", "tables")
+PHYSICAL_COVARIATES_PATH <- file.path(
+  "data", "processed", "analysis", "block_group_physical_covariates.csv"
+)
+BLOCK_GROUP_GPKG_PATH <- file.path(
+  "outputs", "spatial",
+  sprintf("slr_block_group_analysis_%s.gpkg", ARM)
+)
+
+spec_output_name <- function(stem, extension, spec_name = MODEL_SPEC,
+                             extra_tag = NULL) {
+  spec_name <- validate_model_spec(spec_name)
+  suffix <- if (identical(spec_name, "demographic_only")) {
+    ARM
+  } else {
+    paste(ARM, spec_name, sep = "_")
+  }
+  if (!is.null(extra_tag) && nzchar(extra_tag)) {
+    suffix <- paste(suffix, extra_tag, sep = "_")
+  }
+  sprintf("%s_%s.%s", stem, suffix, extension)
+}
+
 AME_EXCEL_PATH <- file.path(
   TABLE_DIR,
-  sprintf("ame_bootstrap_results_%s.xlsx", ARM)
+  spec_output_name("ame_bootstrap_results", "xlsx")
 )
 AME_LATEX_PATH <- file.path(
   TABLE_DIR,
-  sprintf("ame_bootstrap_transition_table_%s.tex", ARM)
+  spec_output_name("ame_bootstrap_transition_table", "tex")
 )
 SAMPLE_DIAGNOSTICS_PATH <- file.path(
   TABLE_DIR,
-  sprintf("transition_sample_diagnostics_%s.csv", ARM)
+  spec_output_name("transition_sample_diagnostics", "csv")
 )
 COEFFICIENT_DIAGNOSTICS_PATH <- file.path(
   TABLE_DIR,
-  sprintf("transition_model_coefficients_%s.csv", ARM)
+  spec_output_name("transition_model_coefficients", "csv")
 )
-
-CORE_COVARIATES <- c(
-  "pct_black_nh",
-  "pct_hispanic",
-  "renter_share",
-  "log_median_income",
-  "pct_age_65plus",
-  "no_vehicle_share"
+SPEC_COMPARISON_PATH <- file.path(
+  TABLE_DIR,
+  sprintf("transition_model_spec_comparison_%s.csv", ARM)
 )
-
-MODEL_COVARIATES <- c(
-  "z_pct_black_nh",
-  "z_pct_hispanic",
-  "z_renter_share",
-  "z_log_median_income",
-  "z_pct_age_65plus",
-  "z_no_vehicle_share"
-)
-
-MODEL_RHS <- paste(MODEL_COVARIATES, collapse = " + ")
 
 STATE_COUNT_COLUMNS <- c(
   "block_centroid_unclassified",
@@ -177,6 +234,7 @@ read_analysis_data <- function(path = DATA_PATH) {
     )
   }
   message("Arm: ", ARM)
+  message("Model specification: ", MODEL_SPEC)
   message("Reading analysis dataset: ", path)
   readr::read_csv(
     path,
@@ -188,6 +246,72 @@ read_analysis_data <- function(path = DATA_PATH) {
     )
   ) %>%
     select(-any_of("poverty_rate"))
+}
+
+attach_physical_covariates <- function(
+    dat,
+    path = PHYSICAL_COVARIATES_PATH
+) {
+  if (!file.exists(path)) {
+    stop(
+      "Physical-covariate file does not exist: ", path,
+      ". Run scripts/03b_join_elevation_drainage.py first."
+    )
+  }
+  message("Reading physical covariates: ", path)
+  physical <- readr::read_csv(
+    path,
+    show_col_types = FALSE,
+    col_types = cols(block_group_geoid = col_character())
+  )
+  required <- c(
+    "block_group_geoid", "elevation_m_mean", "elevation_m_median",
+    "drainage_distance_km"
+  )
+  missing <- setdiff(required, names(physical))
+  if (length(missing) > 0L) {
+    stop(
+      "Physical-covariate file is missing required columns: ",
+      paste(missing, collapse = ", "), "."
+    )
+  }
+  physical <- physical %>% select(all_of(required))
+  if (
+    anyNA(physical$block_group_geoid) ||
+      any(!nzchar(physical$block_group_geoid)) ||
+      anyDuplicated(physical$block_group_geoid)
+  ) {
+    stop("Physical covariates must contain one nonmissing row per GEOID.")
+  }
+  numeric_columns <- setdiff(required, "block_group_geoid")
+  if (
+    any(!vapply(physical[numeric_columns], is.numeric, logical(1))) ||
+      anyNA(physical[numeric_columns]) ||
+      any(!is.finite(as.matrix(physical[numeric_columns])))
+  ) {
+    stop("Physical covariates must be numeric, finite, and nonmissing.")
+  }
+  input_rows <- nrow(dat)
+  output <- dat %>% left_join(physical, by = "block_group_geoid")
+  if (nrow(output) != input_rows) {
+    stop("Physical-covariate join changed the analysis row count.")
+  }
+  unmatched <- output %>%
+    filter(if_any(all_of(SPEC_WITH_PHYSICAL[7:8]), is.na)) %>%
+    distinct(block_group_geoid) %>%
+    pull(block_group_geoid)
+  if (length(unmatched) > 0L) {
+    stop(
+      "Physical covariates are missing for ", length(unmatched),
+      " analysis block groups. Examples: ",
+      paste(head(unmatched, 20L), collapse = ", "), "."
+    )
+  }
+  message(
+    "Physical-covariate join passed for ",
+    n_distinct(output$block_group_geoid), " block groups."
+  )
+  output
 }
 
 assert_eligible_state_partition <- function(dat) {
@@ -276,7 +400,14 @@ make_filter_diagnostic <- function(data, keep, filter_name) {
   )
 }
 
-prepare_transition_data <- function(dat) {
+prepare_transition_data <- function(dat, spec_name = MODEL_SPEC) {
+  spec_name <- validate_model_spec(spec_name)
+  core_covariates <- if (identical(spec_name, "demographic_only")) {
+    SPEC_DEMOGRAPHIC_ONLY
+  } else {
+    SPEC_WITH_PHYSICAL
+  }
+  model_covariates <- get_model_covariates(spec_name)
   dat <- assert_eligible_state_partition(dat)
 
   base_counts <- dat %>%
@@ -405,19 +536,24 @@ prepare_transition_data <- function(dat) {
   scaled <- prepared %>%
     mutate(
       across(
-        all_of(CORE_COVARIATES),
+        all_of(core_covariates),
         ~ as.numeric(scale(.x)),
         .names = "z_{.col}"
       )
     )
 
   complete_covariates <- complete.cases(
-    scaled[, MODEL_COVARIATES, drop = FALSE]
+    scaled[, model_covariates, drop = FALSE]
   )
+  diagnostic_label <- if (identical(spec_name, "demographic_only")) {
+    "drop_na(all_of(MODEL_COVARIATES))"
+  } else {
+    "drop_na(all_of(get_model_covariates(MODEL_SPEC)))"
+  }
   covariate_diagnostic <- make_filter_diagnostic(
     scaled,
     complete_covariates,
-    "drop_na(all_of(MODEL_COVARIATES))"
+    diagnostic_label
   )
   message(
     "Covariate completeness filter dropped ",
@@ -428,19 +564,6 @@ prepare_transition_data <- function(dat) {
   output <- scaled[complete_covariates, , drop = FALSE]
   attr(output, "covariate_filter_diagnostic") <- covariate_diagnostic
   output
-}
-
-fit_transition_model <- function(outcome, data, weight_var) {
-  formula <- as.formula(
-    paste0(outcome, " ~ ", MODEL_RHS, " | county_name + slr_ft_f")
-  )
-  feglm(
-    formula,
-    data = data,
-    family = binomial(),
-    weights = as.formula(paste0("~ ", weight_var)),
-    vcov = ~ block_group_geoid
-  )
 }
 
 get_int_env <- function(env_name, default) {
@@ -460,14 +583,54 @@ bootstrap_avg_slopes <- function(
     data,
     outcome,
     weight_var,
+    spec_name = MODEL_SPEC,
     cluster = "block_group_geoid",
     reps = AME_BOOT_REPS,
     seed = AME_BOOT_SEED,
     max_attempts = AME_BOOT_MAX_ATTEMPTS,
     conf_level = 0.95,
-    label = deparse(formula(model)[[2]])
+    label = deparse(formula(model)[[2]]),
+    pop_weight_var = NULL
 ) {
-  point_estimates <- avg_slopes(model, vcov = FALSE) %>%
+  # pop_weight_var == NULL reproduces the block-group-count-weighted AME exactly:
+  # avg_slopes() is called with no wts argument, byte-for-byte the prior code
+  # path. When set, each block group's contribution to the average marginal
+  # effect is proportional to that column; the grouped-binomial fit is unchanged.
+  if (!is.null(pop_weight_var)) {
+    if (!pop_weight_var %in% names(data)) {
+      stop(
+        "Population-weight column '", pop_weight_var,
+        "' is not present in the risk-set data for ", label, "."
+      )
+    }
+    if (
+      !is.numeric(data[[pop_weight_var]]) ||
+        anyNA(data[[pop_weight_var]]) ||
+        any(!is.finite(data[[pop_weight_var]])) ||
+        any(data[[pop_weight_var]] < 0)
+    ) {
+      stop(
+        "Population-weight column '", pop_weight_var,
+        "' must be numeric, finite and nonnegative."
+      )
+    }
+  }
+  # When pop_weight_var is NULL the call is byte-for-byte the prior code path.
+  # Otherwise the weight is supplied as a numeric vector aligned to the model's
+  # retained rows (fixest::obs()), which does not depend on marginaleffects
+  # being able to recover the column from the fitted object.
+  average_slopes <- function(fitted, fit_data) {
+    if (is.null(pop_weight_var)) {
+      return(avg_slopes(fitted, vcov = FALSE))
+    }
+    row_weights <- fit_data[[pop_weight_var]][fixest::obs(fitted)]
+    if (length(row_weights) != stats::nobs(fitted) || anyNA(row_weights)) {
+      stop("Population weights did not align with the fitted model's rows.")
+    }
+    avg_slopes(fitted, vcov = FALSE, wts = row_weights)
+  }
+
+  point_estimates <- average_slopes(model, data) %>%
     as_tibble() %>%
     select(term, estimate)
 
@@ -501,9 +664,7 @@ bootstrap_avg_slopes <- function(
     sampled_clusters <- sample(cluster_ids, size = n_clusters, replace = TRUE)
     boot_data <- bind_rows(split_data[sampled_clusters])
 
-    boot_formula <- as.formula(
-      paste0(outcome, " ~ ", MODEL_RHS, " | county_name + slr_ft_f")
-    )
+    boot_formula <- make_transition_formula(outcome, spec_name)
     boot_weights <- as.formula(paste0("~ ", weight_var))
 
     boot_model <- tryCatch(
@@ -524,7 +685,7 @@ bootstrap_avg_slopes <- function(
     }
 
     boot_ame <- tryCatch(
-      suppressWarnings(avg_slopes(boot_model, vcov = FALSE) %>% as_tibble()),
+      suppressWarnings(average_slopes(boot_model, boot_data) %>% as_tibble()),
       error = function(e) NULL
     )
     if (is.null(boot_ame)) {
@@ -595,55 +756,20 @@ latex_row <- function(x) {
   paste0(paste(x, collapse = " & "), " \\\\")
 }
 
-make_model_specs <- function(redrisk_dat, fragrisk_dat) {
-  list(
-    "Redundant -> Fragile" = list(
-      data = redrisk_dat,
-      outcome = "prop_red_to_fragile",
-      weights = "baseline_redundant_n"
-    ),
-    "Redundant -> Isolated" = list(
-      data = redrisk_dat,
-      outcome = "prop_red_to_isolated",
-      weights = "baseline_redundant_n"
-    ),
-    "Redundant -> Inundated" = list(
-      data = redrisk_dat,
-      outcome = "prop_red_to_inundated",
-      weights = "baseline_redundant_n"
-    ),
-    "Redundant -> Worse" = list(
-      data = redrisk_dat,
-      outcome = "prop_red_to_worse",
-      weights = "baseline_redundant_n"
-    ),
-    "Fragile -> Isolated" = list(
-      data = fragrisk_dat,
-      outcome = "prop_fragile_to_isolated",
-      weights = "baseline_fragile_n"
-    ),
-    "Fragile -> Inundated" = list(
-      data = fragrisk_dat,
-      outcome = "prop_fragile_to_inundated",
-      weights = "baseline_fragile_n"
-    ),
-    "Fragile -> Worse" = list(
-      data = fragrisk_dat,
-      outcome = "prop_fragile_to_worse",
-      weights = "baseline_fragile_n"
+fit_model_specs <- function(specs) {
+  purrr::map(
+    specs,
+    ~ fit_transition_model(
+      .x$outcome, .x$data, .x$weights, spec_name = MODEL_SPEC
     )
   )
 }
 
-fit_model_specs <- function(specs) {
-  purrr::map(
-    specs,
-    ~ fit_transition_model(.x$outcome, .x$data, .x$weights)
-  )
-}
-
-collect_coefficient_diagnostics <- function(models) {
-  purrr::imap_dfr(
+collect_coefficient_diagnostics <- function(
+    models,
+    conley_vcovs = NULL
+) {
+  output <- purrr::imap_dfr(
     models,
     function(model, transition) {
       coefficient_table <- as.data.frame(fixest::coeftable(model))
@@ -661,10 +787,51 @@ collect_coefficient_diagnostics <- function(models) {
       )
     }
   )
+  if (!is.null(conley_vcovs)) {
+    conley_rows <- purrr::imap_dfr(
+      conley_vcovs,
+      function(vcov_matrix, transition) {
+        tibble(
+          transition = transition,
+          term = rownames(vcov_matrix),
+          conley_se = sqrt(diag(vcov_matrix)),
+          conley_cutoff_km = CONLEY_CUTOFF_KM
+        )
+      }
+    )
+    output <- output %>%
+      left_join(conley_rows, by = c("transition", "term"))
+    if (anyNA(output$conley_se)) {
+      stop("Conley standard errors did not match all coefficient rows.")
+    }
+  }
+  output
 }
 
-bootstrap_model_specs <- function(models, specs) {
+compute_conley_ame_table <- function(models, conley_vcovs) {
+  previous_safety_option <- getOption("marginaleffects_safe")
+  on.exit(options(marginaleffects_safe = previous_safety_option), add = TRUE)
+  options(marginaleffects_safe = FALSE)
   purrr::imap_dfr(
+    models,
+    function(model, transition) {
+      suppressWarnings(
+        avg_slopes(model, vcov = conley_vcovs[[transition]]) %>%
+          as_tibble()
+      ) %>%
+        transmute(
+          transition = transition,
+          term,
+          conley_se = std.error,
+          conley_cutoff_km = CONLEY_CUTOFF_KM
+        )
+    }
+  )
+}
+
+bootstrap_model_specs <- function(models, specs, conley_vcovs = NULL,
+                                  pop_weight_var = NULL) {
+  output <- purrr::imap_dfr(
     models,
     function(model, transition) {
       transition_index <- match(transition, names(models))
@@ -673,8 +840,10 @@ bootstrap_model_specs <- function(models, specs) {
         specs[[transition]]$data,
         outcome = specs[[transition]]$outcome,
         weight_var = specs[[transition]]$weights,
+        spec_name = MODEL_SPEC,
         label = transition,
-        seed = AME_BOOT_SEED + transition_index
+        seed = AME_BOOT_SEED + transition_index,
+        pop_weight_var = pop_weight_var
       ) %>%
         mutate(transition = transition, .before = 1)
     }
@@ -692,6 +861,15 @@ bootstrap_model_specs <- function(models, specs) {
       n_boot,
       n_boot_fail
     )
+  if (!is.null(conley_vcovs)) {
+    conley_ames <- compute_conley_ame_table(models, conley_vcovs)
+    output <- output %>%
+      left_join(conley_ames, by = c("transition", "term"))
+    if (anyNA(output$conley_se)) {
+      stop("Conley AME standard errors did not match all bootstrap AME rows.")
+    }
+  }
+  output
 }
 
 build_ame_table <- function(ame_boot_combined, transition_order, term_labels) {
@@ -782,9 +960,28 @@ build_diagnostic_rows <- function(models, specs, transition_order) {
   diagnostic_values
 }
 
-write_ame_outputs <- function(ame_boot_combined, models, specs) {
+write_ame_outputs <- function(ame_boot_combined, models, specs,
+                              file_tag = NULL, caption_note = NULL) {
   dir.create(TABLE_DIR, showWarnings = FALSE, recursive = TRUE)
-  write.xlsx(ame_boot_combined, file = AME_EXCEL_PATH, overwrite = TRUE)
+  excel_path <- if (is.null(file_tag)) {
+    AME_EXCEL_PATH
+  } else {
+    file.path(
+      TABLE_DIR,
+      spec_output_name("ame_bootstrap_results", "xlsx", MODEL_SPEC, file_tag)
+    )
+  }
+  latex_path <- if (is.null(file_tag)) {
+    AME_LATEX_PATH
+  } else {
+    file.path(
+      TABLE_DIR,
+      spec_output_name(
+        "ame_bootstrap_transition_table", "tex", MODEL_SPEC, file_tag
+      )
+    )
+  }
+  write.xlsx(ame_boot_combined, file = excel_path, overwrite = TRUE)
 
   term_labels <- c(
     z_pct_black_nh = "Black share (z)",
@@ -794,6 +991,13 @@ write_ame_outputs <- function(ame_boot_combined, models, specs) {
     z_pct_age_65plus = "Age 65+ share (z)",
     z_no_vehicle_share = "No-vehicle hh share (z)"
   )
+  if (identical(MODEL_SPEC, "with_physical")) {
+    term_labels <- c(
+      term_labels,
+      z_elevation_m_mean = "Mean elevation (z)",
+      z_drainage_distance_km = "Distance to primary drainage (z)"
+    )
+  }
 
   transition_order <- names(specs)
   transition_headers <- c(
@@ -857,6 +1061,7 @@ write_ame_outputs <- function(ame_boot_combined, models, specs) {
       "}{p{0.95\\linewidth}}{\\footnotesize Notes: Entries are average marginal effects. ",
       "Standard errors are from a ", AME_BOOT_REPS,
       "-replication cluster bootstrap by block group. County and SLR-scenario fixed effects are included in all models. ",
+      if (is.null(caption_note)) "" else paste0(caption_note, " "),
       "Significance stars are based on ",
       "bootstrapped p-values: * $p<0.05$, ** $p<0.01$, *** $p<0.001$. Abbreviations: W = Worse.}\\\\"
     ),
@@ -865,12 +1070,119 @@ write_ame_outputs <- function(ame_boot_combined, models, specs) {
     "\\end{table}"
   )
 
-  writeLines(latex_lines, con = AME_LATEX_PATH)
-  message("Saved AME Excel results to: ", AME_EXCEL_PATH)
-  message("Saved manuscript LaTeX table to: ", AME_LATEX_PATH)
+  writeLines(latex_lines, con = latex_path)
+  message("Saved AME Excel results to: ", excel_path)
+  message("Saved manuscript LaTeX table to: ", latex_path)
 }
 
-analysis_dat <- read_analysis_data() %>% prepare_transition_data()
+compare_specifications <- function(arm = ARM) {
+  demographic_path <- file.path(
+    TABLE_DIR,
+    spec_output_name(
+      "transition_model_coefficients", "csv", "demographic_only"
+    )
+  )
+  physical_path <- file.path(
+    TABLE_DIR,
+    spec_output_name(
+      "transition_model_coefficients", "csv", "with_physical"
+    )
+  )
+  if (!file.exists(demographic_path) || !file.exists(physical_path)) {
+    message(
+      "Specification comparison not written: both coefficient files do ",
+      "not yet exist for arm '", arm, "'."
+    )
+    return(invisible(NULL))
+  }
+
+  read_coefficients <- function(path, suffix) {
+    input <- readr::read_csv(path, show_col_types = FALSE)
+    required <- c("arm", "transition", "term", "estimate", "std.error")
+    missing <- setdiff(required, names(input))
+    if (length(missing) > 0L) {
+      stop(
+        "Coefficient comparison input is missing columns: ",
+        paste(missing, collapse = ", "), "."
+      )
+    }
+    if (anyDuplicated(input[, c("transition", "term")])) {
+      stop("Coefficient comparison input has duplicate transition/term rows.")
+    }
+    optional <- intersect(
+      c("conley_se", "conley_cutoff_km"), names(input)
+    )
+    input %>%
+      select(transition, term, estimate, std.error, all_of(optional)) %>%
+      rename_with(
+        ~ paste0(.x, "_", suffix),
+        -c(transition, term)
+      )
+  }
+
+  demographic <- read_coefficients(demographic_path, "demographic_only")
+  physical <- read_coefficients(physical_path, "with_physical")
+  comparison <- full_join(
+    demographic, physical, by = c("transition", "term")
+  ) %>%
+    mutate(
+      arm = arm,
+      racial_coefficient = term %in% c(
+        "z_pct_black_nh", "z_pct_hispanic"
+      ),
+      percent_change_vs_demographic = if_else(
+        racial_coefficient &
+          !is.na(estimate_demographic_only) &
+          estimate_demographic_only != 0 &
+          !is.na(estimate_with_physical),
+        100 * (
+          estimate_with_physical - estimate_demographic_only
+        ) / estimate_demographic_only,
+        NA_real_
+      )
+    ) %>%
+    select(arm, transition, term, everything()) %>%
+    arrange(transition, term)
+
+  readr::write_csv(comparison, SPEC_COMPARISON_PATH)
+  message("Saved specification comparison to: ", SPEC_COMPARISON_PATH)
+  invisible(comparison)
+}
+
+attach_conley_coordinates <- function(dat, gpkg_path = BLOCK_GROUP_GPKG_PATH) {
+  message("Deriving block-group centroids for Conley covariance: ", gpkg_path)
+  centroids <- load_block_group_centroids(gpkg_path)
+  input_rows <- nrow(dat)
+  output <- dat %>% left_join(centroids, by = "block_group_geoid")
+  if (nrow(output) != input_rows) {
+    stop("Centroid join changed the analysis row count.")
+  }
+  missing_coordinates <- output %>%
+    filter(is.na(centroid_lat) | is.na(centroid_lon)) %>%
+    distinct(block_group_geoid) %>%
+    pull(block_group_geoid)
+  if (length(missing_coordinates) > 0L) {
+    stop(
+      "Centroid coordinates are missing for ",
+      length(missing_coordinates), " block groups. Examples: ",
+      paste(head(missing_coordinates, 20L), collapse = ", "), "."
+    )
+  }
+  output
+}
+
+raw_analysis_dat <- read_analysis_data()
+if (identical(MODEL_SPEC, "with_physical")) {
+  raw_analysis_dat <- attach_physical_covariates(raw_analysis_dat)
+}
+if (!is.null(CONLEY_CUTOFF_KM)) {
+  raw_analysis_dat <- attach_conley_coordinates(raw_analysis_dat)
+  message(
+    "Conley/HAC standard errors enabled at cutoff ",
+    CONLEY_CUTOFF_KM, " km; clustered SEs remain the primary columns."
+  )
+}
+analysis_dat <- prepare_transition_data(raw_analysis_dat, MODEL_SPEC)
 covariate_filter_diagnostic <- attr(
   analysis_dat,
   "covariate_filter_diagnostic"
@@ -940,8 +1252,60 @@ fragrisk_dat <- trans_dat %>%
 
 model_specs <- make_model_specs(redrisk_dat, fragrisk_dat)
 transition_models <- fit_model_specs(model_specs)
-coefficient_diagnostics <- collect_coefficient_diagnostics(transition_models)
+message("All seven transition models converged with complete coefficients.")
+conley_vcovs <- NULL
+if (!is.null(CONLEY_CUTOFF_KM)) {
+  conley_vcovs <- purrr::imap(
+    transition_models,
+    ~ compute_conley_vcov(
+      .x,
+      model_specs[[.y]]$data,
+      cutoff_km = CONLEY_CUTOFF_KM
+    )
+  )
+}
+coefficient_diagnostics <- collect_coefficient_diagnostics(
+  transition_models,
+  conley_vcovs
+)
 readr::write_csv(coefficient_diagnostics, COEFFICIENT_DIAGNOSTICS_PATH)
 message("Saved model coefficient diagnostics to: ", COEFFICIENT_DIAGNOSTICS_PATH)
-ame_boot_combined <- bootstrap_model_specs(transition_models, model_specs)
+compare_specifications()
+ame_boot_combined <- bootstrap_model_specs(
+  transition_models,
+  model_specs,
+  conley_vcovs
+)
 write_ame_outputs(ame_boot_combined, transition_models, model_specs)
+
+if (!is.null(POP_WEIGHT_VAR)) {
+  # Additional, non-replacing table: the manuscript's Table 2 AMEs weight each
+  # block group once; this variant weights each block group's contribution by
+  # its total eligible population, so the reported average reflects residents
+  # rather than block groups. The model fit is identical; only avg_slopes()
+  # aggregation changes. Runs its own cluster bootstrap with the same seeds and
+  # therefore the same resampled block groups as the table above.
+  message(
+    "Computing population-weighted AME table (avg_slopes wts = '",
+    POP_WEIGHT_VAR, "'); grouped-binomial model fit unchanged."
+  )
+  ame_boot_popweighted <- bootstrap_model_specs(
+    transition_models,
+    model_specs,
+    conley_vcovs = NULL,
+    pop_weight_var = POP_WEIGHT_VAR
+  )
+  write_ame_outputs(
+    ame_boot_popweighted,
+    transition_models,
+    model_specs,
+    file_tag = "popweighted",
+    caption_note = paste0(
+      "Average marginal effects are population-weighted: each block group's ",
+      "contribution is proportional to its eligible 2020 population ",
+      "(\\texttt{", POP_WEIGHT_VAR, "}), so every resident counts once ",
+      "regardless of their own characteristics. The grouped-binomial model ",
+      "fit is unchanged (still weighted by baseline state counts)."
+    )
+  )
+}
