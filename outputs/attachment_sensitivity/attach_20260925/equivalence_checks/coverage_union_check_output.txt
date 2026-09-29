@@ -1,0 +1,5 @@
+points: origins=70,695 nodes=1,659,411
+0 ft: coverage_union 117.7s | valid=True | area ref=0.2336786155 cov=0.2336786155 | origin mismatches=0 (inundated 1,178) | node mismatches=0 (in polygon 897)
+5 ft: coverage_union 1046.0s | valid=True | area ref=0.4434354671 cov=0.4434354671 | origin mismatches=0 (inundated 7,578) | node mismatches=0 (in polygon 159,373)
+
+[exited with code 0]

@@ -1,0 +1,11 @@
+done origin_500/demographic_only in 3353 s
+done facility_500/demographic_only in 3374 s
+done origin_1000/demographic_only in 3416 s
+done facility_nearest_1000/demographic_only in 3416 s
+done reference/demographic_only in 3420 s
+done reference/with_physical in 3772 s
+done facility_nearest_1000/with_physical in 3780 s
+done origin_500/with_physical in 3784 s
+done origin_1000/with_physical in 3785 s
+done facility_500/with_physical in 3790 s
+exit=0

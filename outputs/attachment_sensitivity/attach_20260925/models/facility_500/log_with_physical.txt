@@ -1,0 +1,33 @@
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.2.1     ✔ readr     2.2.0
+✔ forcats   1.0.1     ✔ stringr   1.6.0
+✔ ggplot2   4.0.3     ✔ tibble    3.3.1
+✔ lubridate 1.9.5     ✔ tidyr     1.3.2
+✔ purrr     1.2.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+Arm: approach
+Model specification: with_physical
+Reading analysis dataset: C:/Users/Vivek/Dropbox/repos/slr_fl_fragile_access/data/processed/access/attachment_sensitivity/attach_20260925/facility_500/block_group_analysis_dataset.csv
+Reading physical covariates: data/processed/analysis/block_group_physical_covariates.csv
+Physical-covariate join passed for 3942 block groups.
+Eligible-universe state partition passed for 27594 block-group/SLR rows.
+Covariate completeness filter dropped 338 block groups (2366 block-group/SLR rows).
+[approach] drop_na(all_of(get_model_covariates(MODEL_SPEC))): dropped 338 of 3942 block groups and 2366 of 27594 rows; retained 3604 block groups and 25228 rows.
+[approach] baseline_redundant_n > 0: dropped 162 of 3604 block groups and 972 of 21624 rows; retained 3442 block groups and 20652 rows.
+[approach] baseline_fragile_n > 0: dropped 426 of 3604 block groups and 2556 of 21624 rows; retained 3178 block groups and 19068 rows.
+Saved sample diagnostics to: C:/Users/Vivek/Dropbox/repos/slr_fl_fragile_access/outputs/attachment_sensitivity/attach_20260925/models/facility_500/transition_sample_diagnostics_approach_with_physical.csv
+All seven transition models converged with complete coefficients.
+Saved model coefficient diagnostics to: C:/Users/Vivek/Dropbox/repos/slr_fl_fragile_access/outputs/attachment_sensitivity/attach_20260925/models/facility_500/transition_model_coefficients_approach_with_physical.csv
+Saved specification comparison to: C:/Users/Vivek/Dropbox/repos/slr_fl_fragile_access/outputs/attachment_sensitivity/attach_20260925/models/facility_500/transition_model_spec_comparison_approach.csv
+Bootstrap AME SEs for Redundant -> Fragile (199 successful reps requested)...
+Bootstrap AME SEs for Redundant -> Isolated (199 successful reps requested)...
+Bootstrap AME SEs for Redundant -> Inundated (199 successful reps requested)...
+Bootstrap AME SEs for Redundant -> Worse (199 successful reps requested)...
+Bootstrap AME SEs for Fragile -> Isolated (199 successful reps requested)...
+Bootstrap AME SEs for Fragile -> Inundated (199 successful reps requested)...
+Bootstrap AME SEs for Fragile -> Worse (199 successful reps requested)...
+Saved AME Excel results to: C:/Users/Vivek/Dropbox/repos/slr_fl_fragile_access/outputs/attachment_sensitivity/attach_20260925/models/facility_500/ame_bootstrap_results_approach_with_physical.xlsx
+Saved manuscript LaTeX table to: C:/Users/Vivek/Dropbox/repos/slr_fl_fragile_access/outputs/attachment_sensitivity/attach_20260925/models/facility_500/ame_bootstrap_transition_table_approach_with_physical.tex
