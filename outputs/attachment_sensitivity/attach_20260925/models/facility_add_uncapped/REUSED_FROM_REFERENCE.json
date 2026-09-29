@@ -1,0 +1,7 @@
+{
+  "attachment_arm": "facility_add_uncapped",
+  "models_fit": false,
+  "reused_from": "reference",
+  "reason": "The rebuilt block-group analysis dataset is identical to the reference dataset in every column the models read (block-group keys, SLR level, county, total_blocks, the five state counts, the six transition counts, eligible_pop20, and the six covariates), checked 2026-09-29. With identical input, seeds, and code, the fitted models, AMEs, and bootstrap draws are identical, so the reference results apply unchanged.",
+  "underlying_fact": "Admitting the 27 reference-excluded facility candidates (all outside the road extract, 1.1-12.9 km from the nearest node) changed no block's access state at any scenario (state_crosstab_vs_reference.csv)."
+}

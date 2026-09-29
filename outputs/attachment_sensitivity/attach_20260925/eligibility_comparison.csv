@@ -1,0 +1,7 @@
+attachment_arm,input_blocks,eligible_blocks,eligible_populated_blocks,eligible_pop20,eligible_block_groups,excluded_origin_snap_failed_blocks,excluded_origin_snap_failed_pop20,excluded_zero_land_area_blocks,excluded_zero_land_area_pop20,change_vs_reference_blocks,change_vs_reference_pop20
+reference,70695,68521,55381,6135688,3942,262,1848,1912,797,0,0
+origin_1000,70695,68325,55358,6128437,3941,509,9099,1861,797,-196,-7251
+origin_500,70695,67744,55056,6082930,3939,1184,54606,1767,797,-777,-52758
+facility_500,70695,68521,55381,6135688,3942,262,1848,1912,797,0,0
+facility_add_uncapped,70695,68521,55381,6135688,3942,262,1848,1912,797,0,0
+facility_nearest_1000,70695,68521,55381,6135688,3942,262,1848,1912,797,0,0

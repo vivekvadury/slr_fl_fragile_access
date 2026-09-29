@@ -1,0 +1,33 @@
+[16:08:22] stage provenance: 5.6 s; peak RSS so far 0.14 GiB
+[16:09:07] stage load_blocks_facilities_roads: 45.3 s; peak RSS so far 0.76 GiB
+[16:09:07] blocks=70,695 candidates_in_buffer=2,184 road_bounds=(-80.9689146, 25.0967434, -80.0323306, 27.037165)
+[16:09:45] stage load_network: 37.8 s; peak RSS so far 2.57 GiB
+[16:09:45] nodes=1,659,411 edges=1,856,748 bridge_structures=3,482 reclassified_bridge_like=1,436
+[16:10:41] stage raw_membership: 56.4 s; peak RSS so far 5.53 GiB
+[16:10:41] raw membership check: {'rows_fresh': 1659411, 'rows_cached': 1659411, 'lcc_size': 1612693, 'in_lcc_identical': True, '2ecc_size_identical': True}
+[16:10:54] stage origin_snaps: 12.4 s; peak RSS so far 5.53 GiB
+[16:11:10] stage facility_maps: 16.8 s; peak RSS so far 5.53 GiB
+[16:56:58] stage audits_and_baseline_nearest: 2747.8 s; peak RSS so far 5.53 GiB
+[16:56:58] SLR 0 ft: all arm parts present; skipping (resume).
+[16:56:58] SLR 1 ft: all arm parts present; skipping (resume).
+[16:56:58] SLR 2 ft: all arm parts present; skipping (resume).
+[16:56:58] SLR 3 ft: all arm parts present; skipping (resume).
+[16:56:58] SLR 4 ft: all arm parts present; skipping (resume).
+[16:56:58] SLR 5 ft: all arm parts present; skipping (resume).
+[17:00:51] SLR 6 ft union ready in 205.3 s (coverage_union_all)
+[17:09:01] SLR 6 ft arm reference: 490.0 s
+[17:14:47] SLR 6 ft arm origin_1000: 346.0 s
+[17:20:35] SLR 6 ft arm origin_500: 347.3 s
+[17:28:10] SLR 6 ft arm facility_500: 455.3 s
+[17:35:48] SLR 6 ft arm facility_add_uncapped: 457.7 s
+[17:43:32] SLR 6 ft arm facility_nearest_1000: 464.6 s
+[17:43:32] SLR 6 ft done in 2794.3 s (memo hits=9, misses=9)
+[17:43:34] arm reference: 494,865 rows, eligible=68,521, facilities valid=2,163
+[17:43:36] arm origin_1000: 494,865 rows, eligible=68,325, facilities valid=2,163
+[17:43:38] arm origin_500: 494,865 rows, eligible=67,744, facilities valid=2,163
+[17:43:40] arm facility_500: 494,865 rows, eligible=68,521, facilities valid=2,161
+[17:43:41] arm facility_add_uncapped: 494,865 rows, eligible=68,521, facilities valid=2,190
+[17:43:43] arm facility_nearest_1000: 494,865 rows, eligible=68,521, facilities valid=2,163
+[17:43:43] stage assemble: 10.9 s; peak RSS so far 6.19 GiB
+[17:43:43] finished in 5727.3 s; peak RSS 6.19 GiB
+exit=0
