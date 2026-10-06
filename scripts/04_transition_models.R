@@ -19,6 +19,9 @@
 #   avg_slopes() averaging is weighted so each block group counts in proportion
 #   to its eligible population rather than once. It does not replace Table 2.
 # - TRANSITION_DATA_PATH overrides the arm-tagged input dataset.
+# - TRANSITION_TABLE_DIR (unset by default = outputs/tables) redirects every
+#   table this script writes. Use it whenever --data points at a non-production
+#   dataset; --data alone still writes arm-tagged files into outputs/tables.
 # - The input path may also be supplied positionally or with --data; --arm
 #   overrides BRIDGE_ARM. Examples:
 #     Rscript scripts/04_transition_models.R --arm retain
@@ -165,7 +168,13 @@ DATA_PATH <- RUN_OPTIONS$data_path
 MODEL_SPEC <- RUN_OPTIONS$model_spec
 CONLEY_CUTOFF_KM <- RUN_OPTIONS$conley_cutoff_km
 POP_WEIGHT_VAR <- RUN_OPTIONS$pop_weight_var
-TABLE_DIR <- file.path("outputs", "tables")
+TABLE_DIR <- Sys.getenv(
+  "TRANSITION_TABLE_DIR",
+  unset = file.path("outputs", "tables")
+)
+if (!nzchar(TABLE_DIR)) {
+  stop("TRANSITION_TABLE_DIR is set but empty.")
+}
 PHYSICAL_COVARIATES_PATH <- file.path(
   "data", "processed", "analysis", "block_group_physical_covariates.csv"
 )

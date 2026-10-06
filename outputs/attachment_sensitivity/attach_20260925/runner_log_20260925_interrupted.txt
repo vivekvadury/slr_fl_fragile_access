@@ -1,0 +1,58 @@
+[19:05:43] stage provenance: 5.0 s; peak RSS so far 0.15 GiB
+[19:06:10] stage load_blocks_facilities_roads: 26.4 s; peak RSS so far 0.63 GiB
+[19:06:10] blocks=70,695 candidates_in_buffer=2,184 road_bounds=(-80.9689146, 25.0967434, -80.0323306, 27.037165)
+[19:06:31] stage load_network: 21.0 s; peak RSS so far 2.58 GiB
+[19:06:31] nodes=1,659,411 edges=1,856,748 bridge_structures=3,482 reclassified_bridge_like=1,436
+[19:07:11] stage raw_membership: 40.6 s; peak RSS so far 5.54 GiB
+[19:07:11] raw membership check: {'rows_fresh': 1659411, 'rows_cached': 1659411, 'lcc_size': 1612693, 'in_lcc_identical': True, '2ecc_size_identical': True}
+[19:07:19] stage origin_snaps: 7.3 s; peak RSS so far 5.54 GiB
+[19:07:28] stage facility_maps: 9.5 s; peak RSS so far 5.54 GiB
+[19:19:51] stage audits_and_baseline_nearest: 743.3 s; peak RSS so far 5.54 GiB
+[19:20:20] SLR 0 ft union ready in 0.2 s
+[19:26:43] SLR 0 ft arm reference: 383.3 s
+[19:29:22] SLR 0 ft arm origin_1000: 159.5 s
+[19:32:20] SLR 0 ft arm origin_500: 177.3 s
+[19:38:11] SLR 0 ft arm facility_500: 351.0 s
+[19:43:41] SLR 0 ft arm facility_add_uncapped: 330.2 s
+[19:49:10] SLR 0 ft arm facility_nearest_1000: 328.7 s
+[19:49:10] SLR 0 ft done in 1758.3 s (memo hits=9, misses=9)
+[20:02:49] SLR 1 ft union ready in 796.6 s
+[20:08:58] SLR 1 ft arm reference: 368.2 s
+[20:11:30] SLR 1 ft arm origin_1000: 152.6 s
+[20:14:06] SLR 1 ft arm origin_500: 155.2 s
+[20:19:42] SLR 1 ft arm facility_500: 336.7 s
+[20:25:37] SLR 1 ft arm facility_add_uncapped: 354.8 s
+[20:31:11] SLR 1 ft arm facility_nearest_1000: 333.7 s
+[20:31:11] SLR 1 ft done in 2521.1 s (memo hits=18, misses=18)
+[20:37:01] SLR 2 ft union ready in 330.7 s
+[20:42:36] SLR 2 ft arm reference: 334.6 s
+[20:44:28] SLR 2 ft arm origin_1000: 112.6 s
+[20:46:18] SLR 2 ft arm origin_500: 110.0 s
+[20:51:10] SLR 2 ft arm facility_500: 292.2 s
+[20:56:11] SLR 2 ft arm facility_add_uncapped: 300.8 s
+[21:00:58] SLR 2 ft arm facility_nearest_1000: 286.6 s
+[21:00:58] SLR 2 ft done in 1787.1 s (memo hits=27, misses=27)
+[21:11:53] SLR 3 ft union ready in 633.2 s
+[21:18:17] SLR 3 ft arm reference: 383.9 s
+[21:21:15] SLR 3 ft arm origin_1000: 177.6 s
+[21:24:34] SLR 3 ft arm origin_500: 199.6 s
+[21:30:29] SLR 3 ft arm facility_500: 354.3 s
+[21:36:19] SLR 3 ft arm facility_add_uncapped: 349.7 s
+[21:42:09] SLR 3 ft arm facility_nearest_1000: 351.0 s
+[21:42:10] SLR 3 ft done in 2471.6 s (memo hits=36, misses=36)
+[22:10:07] SLR 4 ft union ready in 1653.5 s
+[22:17:55] SLR 4 ft arm reference: 468.0 s
+[22:22:30] SLR 4 ft arm origin_1000: 275.3 s
+[22:27:28] SLR 4 ft arm origin_500: 297.2 s
+[22:34:50] SLR 4 ft arm facility_500: 442.7 s
+[22:42:06] SLR 4 ft arm facility_add_uncapped: 435.4 s
+[22:49:24] SLR 4 ft arm facility_nearest_1000: 437.8 s
+[22:49:24] SLR 4 ft done in 4034.1 s (memo hits=45, misses=45)
+[00:39:29] SLR 5 ft union ready in 6574.8 s
+[00:51:18] SLR 5 ft arm reference: 708.4 s
+[00:59:02] SLR 5 ft arm origin_1000: 464.3 s
+[01:06:48] SLR 5 ft arm origin_500: 466.1 s
+[01:17:08] SLR 5 ft arm facility_500: 619.7 s
+[01:27:20] SLR 5 ft arm facility_add_uncapped: 612.2 s
+[01:37:36] SLR 5 ft arm facility_nearest_1000: 615.2 s
+[01:37:36] SLR 5 ft done in 10092.0 s (memo hits=54, misses=54)

@@ -1,0 +1,13 @@
+spec,field,rows,max_abs_diff
+demographic_only,estimate,42,3.3029134982598407e-15
+demographic_only,std.error,42,2.697495005143935e-16
+demographic_only,conf.low,42,6.404599073306372e-15
+demographic_only,conf.high,42,2.4980018054066022e-15
+demographic_only,p.value,42,1.9506618542664e-13
+demographic_only,n_boot,42,0.0
+with_physical,estimate,56,2.3002433291452462e-15
+with_physical,std.error,56,4.102621020685149e-16
+with_physical,conf.low,56,2.400857290751901e-15
+with_physical,conf.high,56,3.0010716134398763e-15
+with_physical,p.value,56,3.950173521616307e-13
+with_physical,n_boot,56,0.0

@@ -1,0 +1,27 @@
+[18:15:20] stage provenance: 0.4 s; peak RSS so far 0.14 GiB
+[18:15:54] stage load_blocks_facilities_roads: 33.7 s; peak RSS so far 0.84 GiB
+[18:15:54] blocks=70,695 candidates_in_buffer=2,184 road_bounds=(-80.9689146, 25.0967434, -80.0323306, 27.037165)
+[18:16:19] stage load_network: 24.7 s; peak RSS so far 2.58 GiB
+[18:16:19] nodes=1,659,411 edges=1,856,748 bridge_structures=3,482 reclassified_bridge_like=1,436
+[18:17:01] stage raw_membership: 42.2 s; peak RSS so far 5.46 GiB
+[18:17:01] raw membership check: {'rows_fresh': 1659411, 'rows_cached': 1659411, 'lcc_size': 1612693, 'in_lcc_identical': True, '2ecc_size_identical': True}
+[18:17:09] stage origin_snaps: 7.9 s; peak RSS so far 5.46 GiB
+[18:17:20] stage facility_maps: 11.0 s; peak RSS so far 5.46 GiB
+[18:29:04] stage audits_and_baseline_nearest: 703.8 s; peak RSS so far 5.46 GiB
+[18:38:06] SLR 0 ft union ready in 518.4 s
+[18:44:04] SLR 0 ft arm reference: 357.4 s
+[18:46:33] SLR 0 ft arm origin_1000: 149.0 s
+[18:48:58] SLR 0 ft arm origin_500: 144.9 s
+[18:54:27] SLR 0 ft arm facility_500: 329.5 s
+[18:59:51] SLR 0 ft arm facility_add_uncapped: 323.5 s
+[19:05:17] SLR 0 ft arm facility_nearest_1000: 326.7 s
+[19:05:17] SLR 0 ft done in 2173.9 s (memo hits=9, misses=9)
+[19:05:18] arm reference: 70,695 rows, eligible=68,521, facilities valid=2,163
+[19:05:18] arm origin_1000: 70,695 rows, eligible=68,325, facilities valid=2,163
+[19:05:19] arm origin_500: 70,695 rows, eligible=67,744, facilities valid=2,163
+[19:05:19] arm facility_500: 70,695 rows, eligible=68,521, facilities valid=2,161
+[19:05:20] arm facility_add_uncapped: 70,695 rows, eligible=68,521, facilities valid=2,190
+[19:05:21] arm facility_nearest_1000: 70,695 rows, eligible=68,521, facilities valid=2,163
+[19:05:21] stage assemble: 3.0 s; peak RSS so far 7.35 GiB
+[19:05:21] finished in 3000.7 s; peak RSS 7.35 GiB
+exit=0

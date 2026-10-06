@@ -1,0 +1,7 @@
+slr_ft,new_inundated_pop20_ref,new_inundated_pop20_min,new_inundated_pop20_max,new_isolated_or_inundated_pop20_ref,new_isolated_or_inundated_pop20_min,new_isolated_or_inundated_pop20_max,new_fragile_or_worse_pop20_ref,new_fragile_or_worse_pop20_min,new_fragile_or_worse_pop20_max,added_by_fragile_pop20_ref,added_by_fragile_pop20_min,added_by_fragile_pop20_max,non_inundation_share_pop20_ref,non_inundation_share_pop20_min,non_inundation_share_pop20_max,non_inundation_share_blocks_ref,non_inundation_share_blocks_min,non_inundation_share_blocks_max
+1,4853,3907,4853,5467,4521,5467,5523,4577,5523,56,56,56,12.13,12.13,14.64,17.65,17.65,23.08
+2,15780,14283,15780,50129,48131,50129,63117,60123,63117,12988,9994,12988,75.0,73.75,76.63,70.64,69.97,73.16
+3,81604,79660,81604,234293,231656,235321,274793,271994,277028,40500,40338,41707,70.3,70.3,70.71,62.89,62.89,63.87
+4,243438,240942,243438,483279,479505,484307,540709,536853,541737,57430,57348,57506,54.98,54.97,55.12,51.7,51.7,52.23
+5,565983,562035,565983,919822,912879,920850,1002449,993659,1004334,82627,80780,84149,43.54,43.4,43.65,43.98,43.98,44.26
+6,1316751,1308253,1316751,1958517,1946578,1961030,2048545,2036524,2052392,90028,89134,91362,35.72,35.72,35.84,37.8,37.8,37.97

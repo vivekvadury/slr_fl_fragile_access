@@ -1,0 +1,36 @@
+#!/bin/bash
+# TEMPLATE ONLY: the investigation agent must create and test the entry point.
+# Resource values below are provisional examples, NOT measured requirements.
+# Override with sbatch --mem=... --time=... after profiling a full-network job.
+#SBATCH --job-name=slr-attachment
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=64G
+#SBATCH --time=24:00:00
+#SBATCH --output=logs/slr-attachment-%j.out
+#SBATCH --error=logs/slr-attachment-%j.err
+
+set -euo pipefail
+
+# Required absolute paths, set by the agent's completed submission instructions.
+: "${SLR_REPO:?Set SLR_REPO to the verified experiment checkout}"
+: "${SLR_ENV_SETUP:?Set SLR_ENV_SETUP to the verified environment setup script}"
+: "${SLR_TASK_ENTRYPOINT:?Set SLR_TASK_ENTRYPOINT to the implemented experiment shell script}"
+[[ -d "$SLR_REPO" ]] || { echo "Missing repository directory" >&2; exit 2; }
+[[ -f "$SLR_ENV_SETUP" ]] || { echo "Missing environment setup script" >&2; exit 2; }
+[[ -f "$SLR_TASK_ENTRYPOINT" ]] || { echo "Missing implemented entry point" >&2; exit 2; }
+cd "$SLR_REPO"
+
+# Some module/conda activation scripts require nounset to be disabled.
+set +u
+source "$SLR_ENV_SETUP"
+set -u
+export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export OPENBLAS_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export PYTHONUNBUFFERED=1
+
+# The entry point must use the tested Python/R interpreters, isolated outputs,
+# explicit arm configurations, and its own validated completion markers.
+srun bash "$SLR_TASK_ENTRYPOINT"
