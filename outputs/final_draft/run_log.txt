@@ -1,0 +1,60 @@
+Arm: approach
+Model specification: demographic_only
+Reading analysis dataset: data/processed/analysis/block_group_analysis_dataset_approach.csv
+Deriving block-group centroids for Conley covariance: outputs/spatial/slr_block_group_analysis_approach.gpkg
+Conley/HAC standard errors enabled at cutoff 5 km; clustered SEs remain the primary columns.
+Eligible-universe state partition passed for 27594 block-group/SLR rows.
+Covariate completeness filter dropped 338 block groups (2366 block-group/SLR rows).
+[approach] drop_na(all_of(MODEL_COVARIATES)): dropped 338 of 3942 block groups and 2366 of 27594 rows; retained 3604 block groups and 25228 rows.
+[approach] baseline_redundant_n > 0: dropped 162 of 3604 block groups and 972 of 21624 rows; retained 3442 block groups and 20652 rows.
+[approach] baseline_fragile_n > 0: dropped 426 of 3604 block groups and 2556 of 21624 rows; retained 3178 block groups and 19068 rows.
+Saved sample diagnostics to: outputs/final_draft/model_run/transition_sample_diagnostics_approach.csv
+All seven transition models converged with complete coefficients.
+Saved model coefficient diagnostics to: outputs/final_draft/model_run/transition_model_coefficients_approach.csv
+Saved specification comparison to: outputs/final_draft/model_run/transition_model_spec_comparison_approach.csv
+Arm: approach
+Model specification: with_physical
+Reading analysis dataset: data/processed/analysis/block_group_analysis_dataset_approach.csv
+Reading physical covariates: data/processed/analysis/block_group_physical_covariates.csv
+Physical-covariate join passed for 3942 block groups.
+Deriving block-group centroids for Conley covariance: outputs/spatial/slr_block_group_analysis_approach.gpkg
+Conley/HAC standard errors enabled at cutoff 5 km; clustered SEs remain the primary columns.
+Eligible-universe state partition passed for 27594 block-group/SLR rows.
+Covariate completeness filter dropped 338 block groups (2366 block-group/SLR rows).
+[approach] drop_na(all_of(get_model_covariates(MODEL_SPEC))): dropped 338 of 3942 block groups and 2366 of 27594 rows; retained 3604 block groups and 25228 rows.
+[approach] baseline_redundant_n > 0: dropped 162 of 3604 block groups and 972 of 21624 rows; retained 3442 block groups and 20652 rows.
+[approach] baseline_fragile_n > 0: dropped 426 of 3604 block groups and 2556 of 21624 rows; retained 3178 block groups and 19068 rows.
+Saved sample diagnostics to: outputs/final_draft/model_run/transition_sample_diagnostics_approach_with_physical.csv
+All seven transition models converged with complete coefficients.
+Saved model coefficient diagnostics to: outputs/final_draft/model_run/transition_model_coefficients_approach_with_physical.csv
+Saved specification comparison to: outputs/final_draft/model_run/transition_model_spec_comparison_approach.csv
+There were 26 warnings (use warnings() to see them)
+Final-draft inference tables written to outputs/final_draft
+# A tibble: 7 × 4
+  check                                                                    
+  <chr>                                                                    
+1 min distance between distinct block-group centroids (km)                 
+2 median nearest-neighbor centroid distance (km)                           
+3 median other block groups within 5 km                                    
+4 Conley(tiny cutoff) vs unadjusted block-group clustered: max rel. diff   
+5 hand-built clustered vs fixest clustered (unadjusted): max rel. diff     
+6 hand-built 5 km Conley vs fixest (spherical, unadjusted): max rel. diff  
+7 5 km Conley: triangular (production) vs spherical distance, max rel. diff
+     value passed
+     <dbl> <lgl> 
+1 6.56e- 2 TRUE  
+2 6.27e- 1 TRUE  
+3 7.9 e+ 1 TRUE  
+4 6.03e-15 TRUE  
+5 8.78e-15 TRUE  
+6 1.28e-14 TRUE  
+7 2.76e- 3 TRUE  
+  detail                                                                        
+  <chr>                                                                         
+1 Must be positive for the tiny-cutoff test to isolate same-location pairs.     
+2 Descriptive: scale of the 5 km cutoff relative to block-group spacing.        
+3 Range 0-220.                                                                  
+4 Cutoff 0.0328 km. Equality means repeated scenario rows of one block group (d…
+5 Validates the bread/score decomposition.                                      
+6 Uniform kernel; great-circle distances with fixest's 6,376 km Earth radius. E…
+7 Production uses fixest's default triangular distance.                         

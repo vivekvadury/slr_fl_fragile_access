@@ -1,0 +1,5 @@
+corrected_transition,block_count,POP20
+inundated -> inundated,2,28
+isolated -> isolated,1,51
+redundant -> fragile,4,35
+redundant -> redundant,8,371

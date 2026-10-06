@@ -1,0 +1,276 @@
+%% METHODS OUTLINE -- checked against the repository on 25 September 2026.
+%% Replace the existing Methods section with this block.
+%% This is drafting scaffolding, not finished manuscript prose.
+%% Comments describe what each paragraph should establish.
+%% Existing short cross-reference labels and methods-* labels are both retained.
+%% Data sources/vintages stay in Section 3; literature arguments stay in Section 2.
+
+\section{Methods}
+\label{sec:methods}
+
+%% Opening paragraph: summarize the analytical sequence in 2--3 sentences:
+%% construct a road graph; classify block-level access at baseline and each
+%% sea-level scenario; summarize transitions and affected population; relate
+%% block-group transition proportions to social vulnerability indicators.
+%% Define the scope as structural road connectivity to the selected facilities.
+%% Do not repeat the South Florida rationale or the data inventory.
+
+\subsection{Units of analysis and eligibility}
+\label{sec:methods-units}
+
+%% P1. Census blocks are access-analysis units; census block groups are the
+%% units for demographic associations. Explain the aggregation between them.
+%% Each block is represented by a point within its polygon (representative
+%% point), not a geometric or population-weighted centroid. Population totals
+%% assign the block's 2020 population to its modeled access state.
+%%
+%% P2. Eligibility requires positive land area and a valid origin attachment
+%% to the road graph (attachment procedure in Section~\ref{sec:network}).
+%% Keep eligible zero-population blocks in block-count analyses; they contribute
+%% zero to population totals. Hold eligibility fixed across scenarios/rules.
+%% Current universe: 70,695 input blocks; 68,521 eligible blocks containing
+%% 6,135,688 residents, distributed across 3,942 block groups.
+%% Of excluded blocks, 262 are recorded as failed snaps and 1,912 as zero land
+%% area; these are mutually exclusive recorded reasons, with snap failure first.
+%% Distinguish this universe from the complete-covariate regression samples.
+
+\subsection{Road network construction and spatial attachment}
+\label{sec:network}
+\label{sec:methods-network}
+
+%% P1. Define the pre-inundation road graph G_raw=(V,E): an undirected simple
+%% graph constructed from retained drivable OSM geometries. Split polylines
+%% between consecutive vertices; form nodes from common projected coordinates.
+%% Retain major roads, local/residential roads, links, service roads, and living
+%% streets; exclude access=private. Put the exact class list and coordinate
+%% precision in the supplement. State projection: UTM 17N, EPSG:32617.
+%% Explain that connectivity does not model one-way/turn restrictions, travel
+%% time, congestion, capacity, or access by other transport modes.
+%%
+%% P2. Attach each block's representative point to the nearest node in the
+%% largest connected component of G_raw, with a maximum distance of 2 km.
+%% Keep this attachment fixed under all inundation scenarios.
+%% Do not reconnect an origin to a different road after its attached node loses
+%% connectivity. Explain this attachment assumption and report distances in SI.
+%%
+%% P3. Pool public schools, private schools, and fire stations as destinations.
+%% Reachability means connection to at least one facility in the pooled set;
+%% it does not require access to every facility type or to a preassigned school.
+%% Retain candidate facilities within 10 km of the retained road network's
+%% bounding rectangle. This is not a buffer around the three-county polygon.
+%% Prefer facility nodes in non-singleton two-edge-connected components of the
+%% raw largest component, within 1 km; otherwise use the nearest unconstrained
+%% node if it meets the same distance threshold. Discard failed facility snaps.
+%% Explain the purpose: reduce sensitivity to mapped facility driveway stubs.
+%% State this as a modeling assumption, with attachment diagnostics in SI.
+%% Network connection does not establish facility operation, admission, capacity,
+%% emergency response time, or safe travel along the off-network attachment.
+
+\subsection{Sea-level-rise scenarios and road passability}
+\label{sec:slr}
+\label{sec:methods-slr}
+
+%% P1. Refer to the NOAA data in Section 3. Define s=0 as MHHW and s=1,...,6
+%% as water-level increments in feet above that baseline. Apply the passability
+%% rules at every level, including 0 ft. Distinguish G_raw from the 0-ft dry
+%% graph: baseline already includes modeled tidal inundation and bridge rules.
+%% These are water-level scenarios, not dates or event probabilities.
+%%
+%% P2. An ordinary segment becomes unavailable if any part of its geometry
+%% intersects the ocean-connected inundation extent. Remove the whole segment;
+%% do not claim flood-boundary splitting, a depth threshold, or hydraulic routing.
+%% Introduce G_s=(V_s,E_s), the retained graph for scenario s. Keep the
+%% limitations of mapped ocean connection in the data/limitations discussion.
+
+\subsubsection{Bridge and elevated-road treatment}
+\label{sec:bridges}
+\label{sec:methods-bridges}
+
+%% P1. Explain why plan-view intersection alone cannot establish whether an
+%% elevated deck is flooded. Identify bridge-like edges using a recorded bridge
+%% tag or a positive numeric layer value. Negative layer alone gives no exemption.
+%% Do not describe layer as a measured deck elevation or claim all grade
+%% separations and tunnels are correctly represented.
+%%
+%% P2. Describe the primary approach rule. Group connected bridge-like edges
+%% into structures. Landing nodes are structure nodes also incident to ordinary
+%% road edges; a landing is dry if its point does not intersect the NOAA extent.
+%% Retain a structure only if it has at least two dry landing nodes; otherwise
+%% remove all its edges. Apply the rule at baseline as well as positive scenarios.
+%% Two dry nodes do not establish opposite-bank landings or dry approach roads:
+%% the ordinary-road removal rule separately determines surviving connections.
+%% Introduce the two alternative bridge rules briefly; compare them in 4.9.
+
+\subsection{Classification of access states}
+\label{sec:methods-states}
+
+%% P1. Define structural redundancy as alternative paths that share no road
+%% edges. Describe the implementation through connected components and
+%% two-edge-connected components containing facility nodes; cap the score at 2
+%% because the analysis distinguishes no access, fragile access, and redundant
+%% access, not the total number of alternative routes.
+%%
+%% P2. Include a compact definition table or numbered classification equation:
+%% - Inundated: the original representative point intersects the NOAA extent;
+%%   this takes precedence over network access.
+%% - Isolated: the point is dry but no facility is reachable in the retained graph.
+%% - Fragile: the point is dry, a facility is reachable, and the redundancy
+%%   criterion is not met.
+%% - Redundant: the point is dry and meets the facility-connected redundancy
+%%   criterion. Document the node-degree/component algorithm in SI, including
+%%   coincident origin/facility nodes, before asserting an exact max-flow identity.
+%%
+%% P3. Separate the four substantive states from the unclassified output flag
+%% for dry origins with failed attachment. Failed attachments are excluded by
+%% eligibility; the current eligible samples contain zero unclassified blocks.
+%% Do not describe unclassified as a fifth stage of degradation.
+%% The inundated classification concerns the representative point, not complete
+%% flooding of every road, residence, or resident within the census block.
+
+\subsection{Baseline transitions and population summaries}
+\label{sec:methods-transitions}
+
+%% P1. Define S_b(0) and S_b(s). Compare each positive scenario with the block's
+%% own 0-ft state, not with the preceding one-foot increment.
+%% Five mutually exclusive transitions among baseline-connected blocks:
+%% redundant -> fragile, isolated, or inundated; fragile -> isolated or inundated.
+%% Persistent baseline fragility is not newly induced degradation.
+%% Define two composite outcomes: redundant -> worse (all three transitions)
+%% and fragile -> worse (isolation or inundation). These yield seven models.
+%% These are baseline-to-scenario comparisons, not estimated event sequences.
+%%
+%% P2. Aggregate transition indicators to block-group counts. For each model,
+%% divide by eligible blocks in its corresponding baseline state (redundant or
+%% fragile), held fixed across scenarios. Groups with no relevant baseline
+%% blocks do not enter that risk set. Baseline-isolated/inundated blocks remain
+%% in baseline descriptive summaries but not these seven transition models.
+%%
+%% P3. Sum 2020 population across the same five transition categories for the
+%% population figures. Define three nested thresholds: newly inundated;
+%% newly isolated or inundated; newly fragile, isolated, or inundated.
+%% Define the population additionally identified by fragility and the share
+%% affected through non-inundation pathways (new fragility + new isolation,
+%% divided by all five transitions), separately for each scenario.
+%% IMPORTANT: scripts/05_population_figures.py restricts these summaries to
+%% baseline-connected blocks. Broader diagnostic new_inundated flags can also
+%% include baseline-isolated blocks; do not mix those denominators or totals.
+%% Do not sum people across scenarios as unique residents or describe scenarios
+%% as a time series. Report block shares and population shares distinctly.
+
+\subsection{Social vulnerability indicators}
+\label{sec:svi}
+\label{sec:methods-svi}
+
+%% P1. Briefly motivate examining separate dimensions; refer to Section 2.3
+%% for the conceptual argument. Include the six indicators in a compact table:
+%% non-Hispanic Black population share; Hispanic/Latino population share;
+%% renter share of occupied housing units; log median household income;
+%% population share aged 65+; and households without a vehicle as a share of
+%% occupied households. Give ACS variable codes/denominators in SI.
+%% Frame racial/ethnic composition through social and structural conditions,
+%% not inherent susceptibility. Distinguish people from household denominators.
+%%
+%% P2. Explain the natural-log income transformation, standardization to mean
+%% zero/SD one, and complete-case filtering. Scaling occurs on the assembled
+%% block-group/scenario data before complete-case and baseline-risk filtering.
+%% ACS characteristics are fixed across scenarios; ACS uncertainty is not
+%% propagated. The primary approach sample has 3,604 complete-covariate groups,
+%% with 3,442 in the redundant risk set and 3,178 in the fragile risk set.
+
+\subsection{Transition models and statistical inference}
+\label{sec:methods-model}
+
+%% P1. Define Y_gs^k as the number of eligible blocks with transition k, and
+%% N_g^r as the number in its relevant baseline state. Specify seven separate
+%% grouped-binomial logit models, fitted as transition proportions with N_g^r
+%% as trial weights. Include a numbered model equation:
+%% Y_gs^k ~ Binomial(N_g^r, p_gs^k)
+%% logit(p_gs^k) = alpha_k + X_g' beta_k + county_FE + scenario_FE.
+%% State that s is categorical (1--6 ft), slopes are common across scenarios,
+%% and each block group contributes repeated scenario observations.
+%% Separate models are not a jointly constrained multinomial model.
+%%
+%% P2. Describe average marginal effects on the probability scale, evaluated
+%% at observed covariates and averaged equally over retained model rows.
+%% Interpret slopes per one SD of a continuous covariate, not as an exact
+%% finite one-SD counterfactual contrast. Convert to percentage points if used.
+%% Distinguish block-count trial weights from weights used to average effects.
+%% Estimates describe associations with block-level transitions within block
+%% groups; they do not directly estimate individual residents' probabilities.
+%%
+%% P3. Resample block groups with replacement, retaining their scenario rows,
+%% refit each model, and recompute AMEs. Current main tables contain 199
+%% successful replications per model. Report bootstrap SDs and percentile
+%% 95% intervals; current p-values use a normal approximation with bootstrap
+%% SDs. Put the seed, retries, and software versions in SI.
+%% Block-group clustering preserves within-group scenario dependence but does
+%% not address all dependence between neighboring groups; see 4.9.
+%% All interpretations are associational, not causal or individual-level.
+
+\subsection{Adjustment for elevation and drainage proximity}
+\label{sec:physical-adjustment}
+
+%% P1. Give this comparison its own substantive motivation: assess whether
+%% demographic associations persist after adjustment for measured physical
+%% setting. The primary model describes associations without these controls;
+%% the alternative compares associations conditional on elevation and drainage.
+%% The primary model already adjusts for other demographics and fixed effects,
+%% so do not call it an unconditional exposure-disparity model.
+%%
+%% P2. Add standardized block-group mean elevation and straight-line distance
+%% from the block-group centroid to the nearest SFWMD primary drainage feature.
+%% Mean elevation uses valid DEM pixel centers within each block-group polygon.
+%% Drainage proximity is a geographic proxy, not drainage capacity/performance.
+%% Refit all seven approach-rule models using the same uncertainty procedure;
+%% saved sample diagnostics confirm identical estimation samples across specs.
+%% Compare probability-scale AMEs and intervals for ALL SIX social indicators.
+%%
+%% P3. Explain why both specifications are reported: elevation is closely
+%% related to the hazard used to classify inundation, and physical adjustment
+%% changes the comparison being made. This is not a formal mediation analysis
+%% or an estimate of the proportion of disparity caused/explained by elevation.
+%% Joint inclusion cannot establish which physical variable drives attenuation.
+%%
+%% RESULTS PLACEMENT: include the substantive comparison in the main Results;
+%% put the complete side-by-side table in SI. Older-adult intervals include
+%% zero in all seven adjusted models; Black/Hispanic and renter directions
+%% persist. Report the other social indicators too, including income/vehicles.
+
+\subsection{Sensitivity analyses and model diagnostics}
+\label{sec:sensitivity}
+\label{sec:methods-sensitivity}
+
+%% P1. Bridge treatment: compare approach with (i) intersect, removing every
+%% intersecting edge including bridge-like edges, and (ii) retain, exempting
+%% all bridge-like edges while still removing intersecting ordinary roads.
+%% Use each rule's own 0-ft baseline and the same eligible block universe.
+%% Compare baseline states, scenario transitions, population totals, and AMEs.
+%% These are alternative assumptions, not universally nested bounds on every
+%% transition; approach can remove structures with too few landings even when
+%% intersect would leave them. Full arm comparisons belong in SI.
+%%
+%% P2. AME averaging: repeat the averaging using eligible block-group
+%% population weights, retaining the original block-count model likelihood.
+%% This checks sensitivity to how fitted effects are summarized; it is not
+%% a person-level model or a new population-weighted transition denominator.
+%%
+%% P3. Spatial dependence/dispersion: assess Pearson residuals using Moran's I
+%% separately for seven models at six positive scenarios (42 tests per spec).
+%% Describe the actual row-standardized symmetric six-nearest-neighbor graph,
+%% used after queen adjacency produced an island, and its risk-set subsets.
+%% Report Pearson dispersion as sum of squared Pearson residuals / residual df.
+%% These are diagnostics; they do not establish that model assumptions hold.
+%%
+%% P4. Supplement cluster-bootstrap inference with Conley spatial covariance
+%% estimates at block-group centroids. Use the completed 5-km check as the
+%% reference and disclose the explored bandwidths and covariance repairs in SI.
+%% Do not describe bandwidth selection as a priori. Wider-bandwidth results
+%% with repaired covariance matrices require explicit qualification.
+%% Keep coefficient-scale Conley checks distinct from bootstrap AME inference.
+%%
+%% SI: eligibility flow; road classes and attachment distances; service-snap
+%% diagnostics; bridge comparisons; full physical-specification AMEs;
+%% population-weighted AMEs; spatial diagnostics and bandwidth checks;
+%% software, parameters, input/run provenance, and code availability.
+%% Do not list uncompleted routing-engine validation, quasi-binomial refits,
+%% grade-filtered school analyses, or opposite-side landing audits as completed.

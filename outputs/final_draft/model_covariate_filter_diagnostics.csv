@@ -1,0 +1,7 @@
+spec,arm,filter,input_rows,input_block_groups,dropped_rows,dropped_block_groups,retained_rows,retained_block_groups
+demographic_only,approach,drop_na(all_of(MODEL_COVARIATES)),27594,3942,2366,338,25228,3604
+demographic_only,approach,baseline_redundant_n > 0,21624,3604,972,162,20652,3442
+demographic_only,approach,baseline_fragile_n > 0,21624,3604,2556,426,19068,3178
+with_physical,approach,drop_na(all_of(get_model_covariates(MODEL_SPEC))),27594,3942,2366,338,25228,3604
+with_physical,approach,baseline_redundant_n > 0,21624,3604,972,162,20652,3442
+with_physical,approach,baseline_fragile_n > 0,21624,3604,2556,426,19068,3178

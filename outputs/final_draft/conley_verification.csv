@@ -1,0 +1,8 @@
+check,value,passed,detail
+min distance between distinct block-group centroids (km),0.06555464418073133,TRUE,Must be positive for the tiny-cutoff test to isolate same-location pairs.
+median nearest-neighbor centroid distance (km),0.6273461718136499,TRUE,Descriptive: scale of the 5 km cutoff relative to block-group spacing.
+median other block groups within 5 km,79,TRUE,Range 0-220.
+Conley(tiny cutoff) vs unadjusted block-group clustered: max rel. diff,6.0295672553098925e-15,TRUE,"Cutoff 0.0328 km. Equality means repeated scenario rows of one block group (distance 0) are inside the Conley kernel, so within-block-group dependence is covered."
+hand-built clustered vs fixest clustered (unadjusted): max rel. diff,8.776370116062177e-15,TRUE,Validates the bread/score decomposition.
+"hand-built 5 km Conley vs fixest (spherical, unadjusted): max rel. diff",1.2814989600376962e-14,TRUE,"Uniform kernel; great-circle distances with fixest's 6,376 km Earth radius. Equality confirms the meat is the sum of S_g S_h' over block-group pairs within the cutoff."
+"5 km Conley: triangular (production) vs spherical distance, max rel. diff",0.0027645846195371937,TRUE,Production uses fixest's default triangular distance.

@@ -1,2 +1,27 @@
 data/
 .Rproj.user
+
+# R session state (keep intentional research outputs tracked)
+.RData
+.Rhistory
+.Ruserdata
+
+# Python bytecode and notebook checkpoints
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Local environments and secrets
+.venv/
+venv/
+.env
+.env.local
+.env.*.local
+
+# OS and editor artifacts
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+~$*
