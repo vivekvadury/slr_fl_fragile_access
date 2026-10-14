@@ -1,0 +1,8 @@
+transition,identical_sample_rows_outcomes_denominators_social_zscores_FE_coordinates
+Redundant -> Fragile,TRUE
+Redundant -> Isolated,TRUE
+Redundant -> Inundated,TRUE
+Redundant -> Worse,TRUE
+Fragile -> Isolated,TRUE
+Fragile -> Inundated,TRUE
+Fragile -> Worse,TRUE

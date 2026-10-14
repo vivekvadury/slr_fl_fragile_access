@@ -1,0 +1,8 @@
+slr_ft,bridge_structure_rows_mismatch,bridge_retained_mismatch,bridge_dry_landing_count_mismatch,n_total_edges_removed,lcc_nodes_checked,lcc_node_state_mismatch,production_other_state_nodes,node_table_peak_rss_gib,node_table_seconds
+0,0,0,0,1097,1612693,0,0,5.69,316.4
+1,0,0,0,1461,1612693,0,0,5.68,313.7
+2,0,0,0,8103,1612693,0,0,5.67,292.6
+3,0,0,0,38346,1612693,0,0,5.64,408.0
+4,0,0,0,88842,1612693,0,0,5.39,743.6
+5,0,0,0,191276,1612693,0,0,5.4,1319.0
+6,0,0,0,432828,1612693,0,0,4.49,4372.2

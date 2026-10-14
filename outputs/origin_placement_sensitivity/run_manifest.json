@@ -1,0 +1,174 @@
+{
+  "analysis": "Monte Carlo origin-placement sensitivity (exploratory measurement-validity analysis)",
+  "canonical_reference": {
+    "block_access_flags_long_sha256": "181045018501475a31ee5642934a8692b4b9c0bbd50e9f7d7a8cbc2d68e603a3",
+    "bridge_rule": "approach",
+    "run_dir": "data\\processed\\access\\edited\\della_runs\\positive_layer_20260814_approach",
+    "run_manifest_sha256": "551064af5b8cf4e21568460b5eb18bec347ebbe0a52aa1013b4b9f8180a7a87e",
+    "scenarios": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  "design": {
+    "draws_per_block_full": 50,
+    "draws_per_block_pilot": 10,
+    "failed_snap_rule": "canonical: unclassified unless the point is inundated; kept explicit",
+    "origin_snap": "production snap_origins_to_raw_graph (raw-graph LCC nodes, 2,000 m validity)",
+    "rng": "numpy default_rng(SeedSequence([seed, int(block_geoid)])); rejection sampling in land-polygon bbox",
+    "sampling_geometry": "2020 TIGER block polygon minus 2020 TIGER AREAWATER (land polygon), EPSG:32617",
+    "seed": 20261009,
+    "universe": "canonical analysis-eligible blocks (68,521); POP20 fixed per block"
+  },
+  "git_commit": "d139f38b1e12c9e615a21fef57e7c3ccbfb7e6f1",
+  "git_status_porcelain": "M scripts/06_placeholders_in_draft.ipynb\n?? outputs/elevation_drainage_audit_20261006/\n?? outputs/origin_placement_sensitivity/\n?? outputs/social_vulnerability_audit/\n?? scripts/10_social_vulnerability_threshold_audit.R\n?? scripts/origin_placement_sensitivity/",
+  "new_inputs": {
+    "data\\raw\\census\\areawater\\2020\\tl_2020_12011_areawater.zip": "93bb61a690f06d8b62fea10a746b8420269e773d49486d9f91902734d9dce097",
+    "data\\raw\\census\\areawater\\2020\\tl_2020_12086_areawater.zip": "c789b151d2d0f85dcfd4cb0efde9f50906cb2804af063e4a15d2a5898f7ddd9d",
+    "data\\raw\\census\\areawater\\2020\\tl_2020_12099_areawater.zip": "5525423cc229a73cb667d47c2020a2ac78388fcd4da9e1844ad544534cd74dee"
+  },
+  "platform": "Windows-10-10.0.26200-SP0",
+  "python": "3.11.15 | packaged by conda-forge | (main, Jun 11 2026, 03:27:10) [MSC v.1944 64 bit (AMD64)]",
+  "reused_artifacts": {
+    "raw_graph_membership_cache": "data/processed/access/cache/raw_graph_membership_fe639d75a84cb809_full_v2.parquet",
+    "scenario_unions": "data\\processed\\access\\attachment_sensitivity\\attach_20260925\\shared/slr_union_<s>ft.parquet",
+    "segmentized_graph_cache": "data/processed/access/cache/*_fe639d75a84cb809_full_v2.parquet (bridge_like recomputed with positive-layer gate)"
+  },
+  "runtime": {
+    "classify_full_s": 60.7,
+    "node_states_peak_rss_gib": 5.69,
+    "node_states_s": {
+      "0": 316.4,
+      "1": 313.7,
+      "2": 292.6,
+      "3": 408.0,
+      "4": 743.6,
+      "5": 1319.0,
+      "6": 4372.2
+    },
+    "prepare_s": 183.0,
+    "summarize_full_s": 213.6
+  },
+  "script_sha256": {
+    "01_prepare_draws.py": "7af4e7a7106017bba8259d3d859a82bc5c95039a5b3480d358c353aa90e77bc8",
+    "02_build_node_states.py": "92b8b24150ad9fd22279153d88b627095fe8ab9b1b26a48f44f1d9c53760a66b",
+    "03_classify_draws.py": "d6a7fedffce3cb8fa34b789070598bcdd14257f237a19edd7a62a43ff3dac50f",
+    "04_summarize.py": "d7a881d8d1bccc7927854a713ce0ff4892d2eb35d55d72799b349f9e886ebcfe",
+    "05_bg_models.R": "5b7e16dc304634bdc7e289c96592bb6f722f4835ae7f06392925c96dcc2fc794",
+    "06_mechanism_diagnostics.py": "2b3885a8a491b907cc6746af8c793729cee0aafd67b952945019abae9cc8b8d9",
+    "07_compare_models.py": "3bf5355fd86e8c7c9ed24fee2174576ca2cd556bd761e5ca38d2d7086787c14b",
+    "08_write_run_manifest.py": "01c411e71513e6ade3c07642875aa545710a61c2a9d3d8dea449db88bdd68ad4",
+    "ops_lib.py": "a001b6b5dea6aafd3ed6fec280b2d52e609ed62607c7fdef7fcfc7a8cb865625",
+    "run_all.sh": "b1daaea72f1bc2597312190c474de7c83de1deb14b5b968ef30c9bf3b5188dd9"
+  },
+  "stage_manifests": {
+    "classify_full": "full/classify_manifest.json",
+    "classify_pilot": "pilot/classify_manifest.json",
+    "models": "full/bg_model_manifest.json",
+    "node_states": {
+      "0": "work/node_states_slr_0ft_checks.json",
+      "1": "work/node_states_slr_1ft_checks.json",
+      "2": "work/node_states_slr_2ft_checks.json",
+      "3": "work/node_states_slr_3ft_checks.json",
+      "4": "work/node_states_slr_4ft_checks.json",
+      "5": "work/node_states_slr_5ft_checks.json",
+      "6": "work/node_states_slr_6ft_checks.json"
+    },
+    "prepare": "work/prepare_manifest.json",
+    "summarize_full": "full/summarize_manifest.json",
+    "summarize_pilot": "pilot/summarize_manifest.json"
+  },
+  "validation_summary": {
+    "bg_aggregation_reproduction": {
+      "any_loss_of_redundancy_mismatch": 0,
+      "baseline_fragile_to_inundated_mismatch": 0,
+      "baseline_fragile_to_isolated_mismatch": 0,
+      "baseline_redundant_to_fragile_mismatch": 0,
+      "baseline_redundant_to_inundated_mismatch": 0,
+      "baseline_redundant_to_isolated_mismatch": 0,
+      "block_centroid_fragile_mismatch": 0,
+      "block_centroid_inundated_mismatch": 0,
+      "block_centroid_isolated_mismatch": 0,
+      "block_centroid_redundant_mismatch": 0,
+      "block_centroid_unclassified_mismatch": 0,
+      "eligible_pop20_mismatch": 0,
+      "row_alignment_mismatch": 0,
+      "rows": 27594,
+      "total_blocks_mismatch": 0
+    },
+    "fig4_reproduction": {
+      "mismatches": [],
+      "values_checked": 178
+    },
+    "full": {
+      "inundation_cross_check_disagreements": 0,
+      "v1a": {
+        "eligible_mismatches": 0,
+        "inundation_flag_mismatches": 0,
+        "mismatches": 0,
+        "rows": 494865
+      },
+      "v1b_draw_scenarios": 690900,
+      "v1b_total_mismatch": 0,
+      "v1c_bridge_mismatch": 0,
+      "v1c_total_node_mismatch": 0,
+      "v2": {
+        "blocks": 68521,
+        "draws": 3426050,
+        "duplicate_block_rep": 0,
+        "snap_invalid_and_inundated_at_0ft": 26,
+        "snap_invalid_draws": 1173,
+        "snap_valid_vs_threshold_mismatch": 0,
+        "snapped_node_not_in_raw_lcc": 0
+      },
+      "v3_total_issues": 0
+    },
+    "model_reproduction": {
+      "failed_reps": [],
+      "max_abs_coef_diff_vs_production": 1.4432899320127035e-15,
+      "max_abs_se_diff_vs_production": 2.0816681711721685e-16,
+      "n_reps_fitted": 50
+    },
+    "pilot": {
+      "inundation_cross_check_disagreements": 0,
+      "v1a": {
+        "eligible_mismatches": 0,
+        "inundation_flag_mismatches": 0,
+        "mismatches": 0,
+        "rows": 494865
+      },
+      "v1b_draw_scenarios": 138180,
+      "v1b_total_mismatch": 0,
+      "v1c_bridge_mismatch": 0,
+      "v1c_total_node_mismatch": 0,
+      "v2": {
+        "blocks": 1974,
+        "draws": 19740,
+        "duplicate_block_rep": 0,
+        "snap_invalid_and_inundated_at_0ft": 2,
+        "snap_invalid_draws": 6,
+        "snap_valid_vs_threshold_mismatch": 0,
+        "snapped_node_not_in_raw_lcc": 0
+      },
+      "v3_total_issues": 0
+    }
+  },
+  "versions": {
+    "geopandas": "1.1.4",
+    "matplotlib": "3.11.1",
+    "networkx": "3.6.1",
+    "numpy": "2.4.6",
+    "pandas": "3.0.3",
+    "pyarrow": "25.0.0",
+    "pyogrio": "0.12.1",
+    "pyproj": "3.7.2",
+    "scipy": "1.17.1",
+    "shapely": "2.1.2",
+    "statsmodels": "0.14.6"
+  }
+}

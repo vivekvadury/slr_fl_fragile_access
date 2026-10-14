@@ -1,0 +1,11 @@
+[11:26:44] [5 ft] load_network: 13.4 s (peak RSS 2.16 GiB)
+[11:27:13] [5 ft] bridge audit vs canonical: {'n_structures': 3482, 'n_canonical': 3482, 'row_alignment_mismatch': 0, 'landing_node_ids_mismatch': 0, 'dry_landing_count_mismatch': 0, 'retained_mismatch': 0, 'removed_edge_count_mismatch': 0, 'n_bridge_structures': 3482, 'n_bridge_structures_retained': 3083, 'n_bridge_structures_removed': 399, 'n_non_bridge_edges_removed': 190226, 'n_bridge_edges_removed': 1050, 'n_total_edges_removed': 191276}
+[11:27:13] [5 ft] dry_edges: 28.8 s (peak RSS 3.02 GiB)
+[11:27:40] [5 ft] raw_polygon_inundation: 26.7 s (peak RSS 4.1 GiB)
+[11:28:13] [5 ft] build_dry_graph: 33.3 s (peak RSS 4.1 GiB)
+[11:29:17] [5 ft] node table: {'n_nodes': 1659411, 'n_lcc_nodes': 1612693, 'lcc_state_counts': {'redundant': 992450, 'fragile': 411002, 'isolated': 209241}, 'lcc_nodes_absent_from_dry_graph': 159110, 'production_other_state_nodes': 0}
+[11:29:17] [5 ft] node_table: 63.8 s (peak RSS 5.4 GiB)
+[11:31:35] [5 ft] exhaustive node equivalence: {'n_lcc_nodes_checked': 1612693, 'n_mismatch': 0, 'examples': [], 'memo_hits': 20, 'memo_misses': 3}
+[11:31:35] [5 ft] validation_1c_exhaustive_nodes: 137.6 s (peak RSS 5.4 GiB)
+[11:48:30] [5 ft] validation_1b_production_pilot: 1015.1 s (peak RSS 5.4 GiB)
+[11:48:30] [5 ft] done in 1319.0 s; peak RSS 5.4 GiB

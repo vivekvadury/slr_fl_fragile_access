@@ -1,0 +1,44 @@
+{
+  "inundation_cross_check_disagreements": 0,
+  "n_draws": 10,
+  "peak_rss_gib": 2.22,
+  "script": "scripts/origin_placement_sensitivity/03_classify_draws.py",
+  "seed": 20261009,
+  "state_codes": {
+    "fragile": 2,
+    "inundated": 0,
+    "isolated": 1,
+    "redundant": 3,
+    "unclassified": 4
+  },
+  "subset": "pilot",
+  "timings_s": {
+    "classify_draws": 1.6,
+    "load": 1.5,
+    "transitions": 0.1,
+    "v1a_canonical": 6.6,
+    "v1b_production_pilot": 0.2,
+    "write": 0.2
+  },
+  "total_s": 10.2,
+  "v1a": {
+    "eligible_mismatches": 0,
+    "inundation_flag_mismatches": 0,
+    "mismatches": 0,
+    "rows": 494865
+  },
+  "v1b_draw_scenarios": 138180,
+  "v1b_total_mismatch": 0,
+  "v1c_bridge_mismatch": 0,
+  "v1c_total_node_mismatch": 0,
+  "v2": {
+    "blocks": 1974,
+    "draws": 19740,
+    "duplicate_block_rep": 0,
+    "snap_invalid_and_inundated_at_0ft": 2,
+    "snap_invalid_draws": 6,
+    "snap_valid_vs_threshold_mismatch": 0,
+    "snapped_node_not_in_raw_lcc": 0
+  },
+  "v3_total_issues": 0
+}

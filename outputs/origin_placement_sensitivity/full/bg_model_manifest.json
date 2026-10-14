@@ -1,0 +1,6 @@
+{
+  "failed_reps": [],
+  "max_abs_coef_diff_vs_production": 1.4432899320127035e-15,
+  "max_abs_se_diff_vs_production": 2.0816681711721685e-16,
+  "n_reps_fitted": 50
+}

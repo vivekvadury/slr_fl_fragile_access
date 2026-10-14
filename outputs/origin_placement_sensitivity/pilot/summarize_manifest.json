@@ -1,0 +1,11 @@
+{
+  "bg_aggregation_check": {},
+  "fig4_check": {
+    "skipped": "pilot subset"
+  },
+  "n_blocks": 1974,
+  "n_draws": 10,
+  "peak_rss_gib": 0.62,
+  "run": "pilot",
+  "total_s": 15.6
+}

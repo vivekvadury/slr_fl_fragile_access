@@ -1,0 +1,8 @@
+# Large, fully regenerable intermediates (see scripts/origin_placement_sensitivity/run_all.sh).
+work/
+*/work_bg/
+*.parquet
+# Block-level tables are 20-60 MB each; regenerate with 04_summarize.py.
+*/block_state_stability.csv
+*/block_transition_stability.csv
+*/block_group_sensitivity.csv

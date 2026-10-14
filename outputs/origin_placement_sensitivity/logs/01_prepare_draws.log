@@ -1,0 +1,24 @@
+[10:24:51] load_canonical: 0.1 s (peak RSS 0.24 GiB)
+[10:25:19] load_blocks_roads: 28.6 s (peak RSS 0.81 GiB)
+[10:25:26] service attachment vs canonical audit: {'n_services': 2190, 'n_canonical': 2190, 'row_alignment_mismatch': 0, 'service_id_mismatch': 0, 'node_id_mismatch': 0, 'snap_valid_mismatch': 0, 'service_snap_rule_mismatch': 0, 'n_valid': 2163}
+[10:25:26] services: 6.2 s (peak RSS 1.76 GiB)
+[10:25:27] canonical point snap vs canonical run: {'n_blocks': 70695, 'node_id_mismatch': 0, 'snap_distance_max_abs_diff': 1.8242999999529275e-08, 'snap_valid_vs_exclusion_mismatch': 0}
+[10:25:27] canonical_snap: 1.6 s (peak RSS 1.76 GiB)
+[10:25:49] land_polygons: 21.9 s (peak RSS 1.76 GiB)
+[10:25:57] coastal_and_network_counts: 8.4 s (peak RSS 1.91 GiB)
+[10:26:05]   0 ft boundary metrics: {'union_vertices': 2808967, 'densified_vertices': 2845411, 'blocks_straddling': 1697, 'seconds': 7.2}
+[10:26:12]   1 ft boundary metrics: {'union_vertices': 3352936, 'densified_vertices': 3391157, 'blocks_straddling': 1781, 'seconds': 7.1}
+[10:26:17]   2 ft boundary metrics: {'union_vertices': 2172631, 'densified_vertices': 2213422, 'blocks_straddling': 2314, 'seconds': 4.8}
+[10:26:22]   3 ft boundary metrics: {'union_vertices': 2256718, 'densified_vertices': 2302674, 'blocks_straddling': 3882, 'seconds': 4.9}
+[10:26:29]   4 ft boundary metrics: {'union_vertices': 3390356, 'densified_vertices': 3443330, 'blocks_straddling': 6116, 'seconds': 7.0}
+[10:26:43]   5 ft boundary metrics: {'union_vertices': 6832627, 'densified_vertices': 6912178, 'blocks_straddling': 10374, 'seconds': 14.7}
+[10:26:55]   6 ft boundary metrics: {'union_vertices': 5378900, 'densified_vertices': 5507855, 'blocks_straddling': 18062, 'seconds': 11.3}
+[10:26:55] inundation_boundary_metrics: 57.5 s (peak RSS 4.92 GiB)
+[10:26:55] pilot blocks: 1974; strata {'small_urban': {'eligible_in_stratum': 13349, 'sampled': 300}, 'large_suburban': {'eligible_in_stratum': 6168, 'sampled': 300}, 'coastal': {'eligible_in_stratum': 4732, 'sampled': 300}, 'network_complex': {'eligible_in_stratum': 7181, 'sampled': 300}, 'near_inundation_boundary': {'eligible_in_stratum': 21239, 'sampled': 300}, 'random': {'eligible_in_stratum': 68521, 'sampled': 500}, 'thresholds': {'land_area_p25_m2': 11525.0, 'land_area_p90_m2': 112633.0, 'land_area_p99_m2': 982892.4000000013}}
+[10:27:06] sampling: 10.5 s (peak RSS 4.92 GiB)
+[10:27:40] draw geometry checks: {'n_draws': 3426050, 'n_blocks': 68521, 'draws_per_block_min': 50, 'draws_per_block_max': 50, 'draws_outside_land_polygon': 0, 'draws_outside_block_polygon': 0, 'draws_strictly_within_n_blocks_ne_1': 0, 'draws_within_a_different_block': 0, 'duplicate_coordinates': 0, 'candidates_total': 18880297, 'acceptance_rate': 0.18146165815082252, 'nesting_check_blocks': 200, 'nesting_check_failures': 0}
+[10:27:40] geometry_checks: 33.9 s (peak RSS 5.36 GiB)
+[10:27:50] draw snap checks: {'snap_invalid_draws': 1173, 'snap_invalid_share': 0.0003423767895973497, 'blocks_with_any_invalid_draw': 96, 'all_snapped_nodes_in_lcc': True, 'snap_distance_p50': 31.808069262639137, 'snap_distance_p99': 509.7157212759908, 'snap_distance_max': 14513.158237231233}
+[10:27:50] snap_draws: 10.9 s (peak RSS 5.89 GiB)
+[10:27:54] done in 183.0 s; peak RSS 5.89 GiB
+EXIT 0

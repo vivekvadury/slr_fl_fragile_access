@@ -1,0 +1,7 @@
+slr_ft,flag_mismatch_vs_label_recompute,flags_set_with_unclassified_baseline,flags_set_with_unclassified_scenario,five_transitions_overlap,red_to_worse_ne_sum_of_three,fragile_to_worse_ne_sum_of_two,draws_with_unclassified_baseline,draws_with_unclassified_scenario,unclassified_baseline_but_valid_scenario,baseline_state_not_from_same_draw
+1,0,0,0,0,0,0,1147,1072,0,0
+2,0,0,0,0,0,0,1147,1032,0,0
+3,0,0,0,0,0,0,1147,947,0,0
+4,0,0,0,0,0,0,1147,933,0,0
+5,0,0,0,0,0,0,1147,898,0,0
+6,0,0,0,0,0,0,1147,840,0,0

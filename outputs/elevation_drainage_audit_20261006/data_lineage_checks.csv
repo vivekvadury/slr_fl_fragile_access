@@ -1,0 +1,15 @@
+check,passed,detail
+Approach run; all legacy behavior disabled,True,Read canonical approach run_manifest.json; 0-6 ft scenarios.
+Eligible source blocks,True,68521 unique eligible blocks; 479647 block-scenario rows
+Unique block-scenario keys: source,True,479647 rows
+Unique block-scenario keys: analysis,True,479647 rows
+Every saved analysis classification matches source access run,True,"All 479647 rows: statuses, eligibility, five state flags, baseline flags, population, origin method, bridge arm"
+Approach and representative-point origins,True,All eligible block-scenario rows
+Transition definition: baseline_redundant_to_fragile,True,Re-derived from finalized state indicators
+Transition definition: baseline_redundant_to_isolated,True,Re-derived from finalized state indicators
+Transition definition: baseline_redundant_to_inundated,True,Re-derived from finalized state indicators
+Transition definition: baseline_fragile_to_isolated,True,Re-derived from finalized state indicators
+Transition definition: baseline_fragile_to_inundated,True,Re-derived from finalized state indicators
+Transition definition: any_loss_of_redundancy,True,Re-derived from finalized state indicators
+Block-group inputs equal reaggregated current blocks,True,"27594 rows, 3942 block groups; all state/transition counts, denominators, population"
+Physical covariates complete and one-to-one,True,All 3942 analysis block groups; no extra complete-case exclusions

@@ -1,0 +1,26 @@
+[13:03:36] load: 0.5 s (peak RSS 0.91 GiB)
+[13:03:42] V1a canonical reproduction: {'rows': 494865, 'mismatches': 0, 'eligible_mismatches': 0, 'inundation_flag_mismatches': 0}
+[13:03:42] v1a_canonical: 6.4 s (peak RSS 2.58 GiB)
+[13:04:22] inundation cross-check:
+ slr_ft   draws  union_inundated  raw_polygon_inundated  draw_disagreements  canonical_point_disagreements
+      0 3426050            11296                  11296                   0                              0
+      1 3426050            15473                  15473                   0                              0
+      2 3426050            25333                  25333                   0                              0
+      3 3426050            72292                  72292                   0                              0
+      4 3426050           154749                 154749                   0                              0
+      5 3426050           330937                 330937                   0                              0
+      6 3426050           715551                 715551                   0                              0
+[13:04:22] classify_draws: 39.9 s (peak RSS 3.34 GiB)
+[13:04:22] V1b engine vs production on pilot draws: 690900 draw-scenarios, 0 mismatches
+[13:04:22] v1b_production_pilot: 0.3 s (peak RSS 3.34 GiB)
+[13:04:30] V3 transition consistency:
+ slr_ft  flag_mismatch_vs_label_recompute  flags_set_with_unclassified_baseline  flags_set_with_unclassified_scenario  five_transitions_overlap  red_to_worse_ne_sum_of_three  fragile_to_worse_ne_sum_of_two  draws_with_unclassified_baseline  draws_with_unclassified_scenario  unclassified_baseline_but_valid_scenario  baseline_state_not_from_same_draw
+      1                                 0                                     0                                     0                         0                             0                               0                              1147                              1072                                         0                                  0
+      2                                 0                                     0                                     0                         0                             0                               0                              1147                              1032                                         0                                  0
+      3                                 0                                     0                                     0                         0                             0                               0                              1147                               947                                         0                                  0
+      4                                 0                                     0                                     0                         0                             0                               0                              1147                               933                                         0                                  0
+      5                                 0                                     0                                     0                         0                             0                               0                              1147                               898                                         0                                  0
+      6                                 0                                     0                                     0                         0                             0                               0                              1147                               840                                         0                                  0
+[13:04:30] transitions: 7.7 s (peak RSS 3.34 GiB)
+[13:04:36] write: 5.7 s (peak RSS 3.34 GiB)
+[13:04:36] manifest: {'script': 'scripts/origin_placement_sensitivity/03_classify_draws.py', 'subset': 'all', 'n_draws': 50, 'seed': 20261009, 'state_codes': {'inundated': 0, 'isolated': 1, 'fragile': 2, 'redundant': 3, 'unclassified': 4}, 'v1a': {'rows': 494865, 'mismatches': 0, 'eligible_mismatches': 0, 'inundation_flag_mismatches': 0}, 'v1b_total_mismatch': 0, 'v1b_draw_scenarios': 690900, 'v1c_total_node_mismatch': 0, 'v1c_bridge_mismatch': 0, 'v2': {'draws': 3426050, 'blocks': 68521, 'snapped_node_not_in_raw_lcc': 0, 'snap_valid_vs_threshold_mismatch': 0, 'snap_invalid_draws': 1173, 'snap_invalid_and_inundated_at_0ft': 26, 'duplicate_block_rep': 0}, 'inundation_cross_check_disagreements': 0, 'v3_total_issues': 0, 'timings_s': {'load': 0.5, 'v1a_canonical': 6.4, 'classify_draws': 39.9, 'v1b_production_pilot': 0.3, 'transitions': 7.7, 'write': 5.7}, 'total_s': 60.7, 'peak_rss_gib': 3.34}

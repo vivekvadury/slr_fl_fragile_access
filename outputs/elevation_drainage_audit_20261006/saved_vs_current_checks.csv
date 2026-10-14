@@ -1,0 +1,7 @@
+field,max_abs_difference,tolerance,passed
+estimate,2.7755575615628914e-17,1e-8,TRUE
+std_error,9.540979117872439e-18,1e-8,TRUE
+z,1.7763568394002505e-15,1e-8,TRUE
+p_value,2.7755575615628914e-17,1e-8,TRUE
+conf_low,1.3877787807814457e-17,1e-8,TRUE
+conf_high,9.540979117872439e-18,1e-8,TRUE

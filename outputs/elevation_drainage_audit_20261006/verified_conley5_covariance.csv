@@ -1,0 +1,15 @@
+spec,transition,min_eigenvalue_raw,positive_definite,max_abs_repair
+demographic_only,Redundant -> Fragile,0.0017011439263890607,TRUE,0
+demographic_only,Redundant -> Isolated,0.002351206234400972,TRUE,0
+demographic_only,Redundant -> Inundated,0.0031686935983304284,TRUE,0
+demographic_only,Redundant -> Worse,0.003282600991762119,TRUE,0
+demographic_only,Fragile -> Isolated,0.0018713990959259143,TRUE,0
+demographic_only,Fragile -> Inundated,0.0022663373974130376,TRUE,0
+demographic_only,Fragile -> Worse,0.002929380715280967,TRUE,0
+with_physical,Redundant -> Fragile,0.0011286061650664675,TRUE,0
+with_physical,Redundant -> Isolated,0.0012403013417337499,TRUE,0
+with_physical,Redundant -> Inundated,0.0015672569769398295,TRUE,0
+with_physical,Redundant -> Worse,0.0028459953177449523,TRUE,0
+with_physical,Fragile -> Isolated,0.0014392812085272533,TRUE,0
+with_physical,Fragile -> Inundated,9.403263033644942e-4,TRUE,0
+with_physical,Fragile -> Worse,0.00255812181328696,TRUE,0

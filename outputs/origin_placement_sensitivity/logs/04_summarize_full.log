@@ -1,0 +1,8 @@
+[13:23:46] 68,521 blocks x 50 draws
+[13:24:06] block stability tables written
+[13:24:12] fig4 reproduction check: {'values_checked': 178, 'mismatches': []}
+[13:24:47] correlates and spatial concentration written
+[13:24:48] canonical BG aggregation vs production dataset: {'rows': 27594, 'row_alignment_mismatch': 0, 'block_centroid_redundant_mismatch': 0, 'block_centroid_fragile_mismatch': 0, 'block_centroid_isolated_mismatch': 0, 'block_centroid_inundated_mismatch': 0, 'block_centroid_unclassified_mismatch': 0, 'any_loss_of_redundancy_mismatch': 0, 'baseline_redundant_to_fragile_mismatch': 0, 'baseline_redundant_to_isolated_mismatch': 0, 'baseline_redundant_to_inundated_mismatch': 0, 'baseline_fragile_to_isolated_mismatch': 0, 'baseline_fragile_to_inundated_mismatch': 0, 'total_blocks_mismatch': 0, 'eligible_pop20_mismatch': 0}
+[13:26:45] block-group datasets written
+[13:27:14] figures written
+EXIT 0

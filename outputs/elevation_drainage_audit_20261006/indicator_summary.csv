@@ -1,0 +1,7 @@
+covariate,primary_significant,adjusted_significant,adjusted_negative,adjusted_positive,sign_changes,attenuation_min_percent,attenuation_max_percent
+Black share,7,7,7,0,0,40.115948264238185,65.55631858569821
+Hispanic share,7,7,7,0,0,29.978355074184236,63.96450553965014
+Renter share,7,6,0,7,0,20.543816873188803,61.46063618546055
+Log median income,1,0,5,2,5,48.71063923783815,79.82990112515999
+Age 65+ share,5,0,3,4,3,74.45408967329867,96.07811396016476
+No-vehicle household share,0,1,1,6,4,-186.10695605756467,73.4782346647606

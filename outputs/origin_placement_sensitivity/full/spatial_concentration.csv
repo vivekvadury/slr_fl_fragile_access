@@ -1,0 +1,14 @@
+slr_ft,quantity,morans_i_knn8,permutation_p,n_blocks,unstable_blocks_lt_0_8,share_of_unstable_in_top10pct_block_groups,block_groups_with_any_unstable,block_groups
+0,state disagreement (1 - share_match_canonical_all),0.13524070170482985,0.005,68521,17801.0,0.32436379978652885,3611.0,3942.0
+1,state disagreement (1 - share_match_canonical_all),0.1355238876566616,0.005,68521,17830.0,0.323948401570387,3613.0,3942.0
+1,transition disagreement (1 - share_exact_transition),0.13630698597706076,0.005,68521,,,,
+2,state disagreement (1 - share_match_canonical_all),0.14241221387228892,0.005,68521,18098.0,0.3242899767930158,3621.0,3942.0
+2,transition disagreement (1 - share_exact_transition),0.14887233590148363,0.005,68521,,,,
+3,state disagreement (1 - share_match_canonical_all),0.15838983070197019,0.005,68521,18745.0,0.3261136303014137,3610.0,3942.0
+3,transition disagreement (1 - share_exact_transition),0.17884496670109704,0.005,68521,,,,
+4,state disagreement (1 - share_match_canonical_all),0.1715664790865887,0.005,68521,19419.0,0.3321489263092847,3595.0,3942.0
+4,transition disagreement (1 - share_exact_transition),0.20471242829574715,0.005,68521,,,,
+5,state disagreement (1 - share_match_canonical_all),0.17883748164607147,0.005,68521,20412.0,0.3332843425436018,3581.0,3942.0
+5,transition disagreement (1 - share_exact_transition),0.222250935709064,0.005,68521,,,,
+6,state disagreement (1 - share_match_canonical_all),0.2154489179297046,0.005,68521,22735.0,0.3400043985045085,3539.0,3942.0
+6,transition disagreement (1 - share_exact_transition),0.25383054421913026,0.005,68521,,,,

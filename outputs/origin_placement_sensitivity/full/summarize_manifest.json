@@ -1,0 +1,28 @@
+{
+  "bg_aggregation_check": {
+    "any_loss_of_redundancy_mismatch": 0,
+    "baseline_fragile_to_inundated_mismatch": 0,
+    "baseline_fragile_to_isolated_mismatch": 0,
+    "baseline_redundant_to_fragile_mismatch": 0,
+    "baseline_redundant_to_inundated_mismatch": 0,
+    "baseline_redundant_to_isolated_mismatch": 0,
+    "block_centroid_fragile_mismatch": 0,
+    "block_centroid_inundated_mismatch": 0,
+    "block_centroid_isolated_mismatch": 0,
+    "block_centroid_redundant_mismatch": 0,
+    "block_centroid_unclassified_mismatch": 0,
+    "eligible_pop20_mismatch": 0,
+    "row_alignment_mismatch": 0,
+    "rows": 27594,
+    "total_blocks_mismatch": 0
+  },
+  "fig4_check": {
+    "mismatches": [],
+    "values_checked": 178
+  },
+  "n_blocks": 68521,
+  "n_draws": 50,
+  "peak_rss_gib": 3.1,
+  "run": "full",
+  "total_s": 213.6
+}

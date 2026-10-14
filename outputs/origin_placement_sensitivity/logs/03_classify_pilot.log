@@ -1,0 +1,26 @@
+[13:02:06] load: 1.5 s (peak RSS 0.95 GiB)
+[13:02:13] V1a canonical reproduction: {'rows': 494865, 'mismatches': 0, 'eligible_mismatches': 0, 'inundation_flag_mismatches': 0}
+[13:02:13] v1a_canonical: 6.6 s (peak RSS 2.22 GiB)
+[13:02:14] inundation cross-check:
+ slr_ft  draws  union_inundated  raw_polygon_inundated  draw_disagreements  canonical_point_disagreements
+      0  19740              158                    158                   0                              0
+      1  19740              267                    267                   0                              0
+      2  19740              410                    410                   0                              0
+      3  19740             1151                   1151                   0                              0
+      4  19740             2179                   2179                   0                              0
+      5  19740             3774                   3774                   0                              0
+      6  19740             6528                   6528                   0                              0
+[13:02:14] classify_draws: 1.6 s (peak RSS 2.22 GiB)
+[13:02:15] V1b engine vs production on pilot draws: 138180 draw-scenarios, 0 mismatches
+[13:02:15] v1b_production_pilot: 0.2 s (peak RSS 2.22 GiB)
+[13:02:15] V3 transition consistency:
+ slr_ft  flag_mismatch_vs_label_recompute  flags_set_with_unclassified_baseline  flags_set_with_unclassified_scenario  five_transitions_overlap  red_to_worse_ne_sum_of_three  fragile_to_worse_ne_sum_of_two  draws_with_unclassified_baseline  draws_with_unclassified_scenario  unclassified_baseline_but_valid_scenario  baseline_state_not_from_same_draw
+      1                                 0                                     0                                     0                         0                             0                               0                                 4                                 2                                         0                                  0
+      2                                 0                                     0                                     0                         0                             0                               0                                 4                                 2                                         0                                  0
+      3                                 0                                     0                                     0                         0                             0                               0                                 4                                 2                                         0                                  0
+      4                                 0                                     0                                     0                         0                             0                               0                                 4                                 2                                         0                                  0
+      5                                 0                                     0                                     0                         0                             0                               0                                 4                                 2                                         0                                  0
+      6                                 0                                     0                                     0                         0                             0                               0                                 4                                 2                                         0                                  0
+[13:02:15] transitions: 0.1 s (peak RSS 2.22 GiB)
+[13:02:15] write: 0.2 s (peak RSS 2.22 GiB)
+[13:02:15] manifest: {'script': 'scripts/origin_placement_sensitivity/03_classify_draws.py', 'subset': 'pilot', 'n_draws': 10, 'seed': 20261009, 'state_codes': {'inundated': 0, 'isolated': 1, 'fragile': 2, 'redundant': 3, 'unclassified': 4}, 'v1a': {'rows': 494865, 'mismatches': 0, 'eligible_mismatches': 0, 'inundation_flag_mismatches': 0}, 'v1b_total_mismatch': 0, 'v1b_draw_scenarios': 138180, 'v1c_total_node_mismatch': 0, 'v1c_bridge_mismatch': 0, 'v2': {'draws': 19740, 'blocks': 1974, 'snapped_node_not_in_raw_lcc': 0, 'snap_valid_vs_threshold_mismatch': 0, 'snap_invalid_draws': 6, 'snap_invalid_and_inundated_at_0ft': 2, 'duplicate_block_rep': 0}, 'inundation_cross_check_disagreements': 0, 'v3_total_issues': 0, 'timings_s': {'load': 1.5, 'v1a_canonical': 6.6, 'classify_draws': 1.6, 'v1b_production_pilot': 0.2, 'transitions': 0.1, 'write': 0.2}, 'total_s': 10.2, 'peak_rss_gib': 2.22}

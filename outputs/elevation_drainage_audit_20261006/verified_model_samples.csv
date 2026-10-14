@@ -1,0 +1,15 @@
+spec,transition,observations,block_groups,baseline_risk_set_blocks,block_scenario_trials,transition_events,converged,slr_scenarios,counties,weight_column
+demographic_only,Redundant -> Fragile,20652,3442,46954,281724,3689,TRUE,6,3,baseline_redundant_n
+demographic_only,Redundant -> Isolated,20652,3442,46954,281724,8750,TRUE,6,3,baseline_redundant_n
+demographic_only,Redundant -> Inundated,20652,3442,46954,281724,14754,TRUE,6,3,baseline_redundant_n
+demographic_only,Redundant -> Worse,20652,3442,46954,281724,27193,TRUE,6,3,baseline_redundant_n
+demographic_only,Fragile -> Isolated,19068,3178,16114,96684,3563,TRUE,6,3,baseline_fragile_n
+demographic_only,Fragile -> Inundated,19068,3178,16114,96684,5658,TRUE,6,3,baseline_fragile_n
+demographic_only,Fragile -> Worse,19068,3178,16114,96684,9221,TRUE,6,3,baseline_fragile_n
+with_physical,Redundant -> Fragile,20652,3442,46954,281724,3689,TRUE,6,3,baseline_redundant_n
+with_physical,Redundant -> Isolated,20652,3442,46954,281724,8750,TRUE,6,3,baseline_redundant_n
+with_physical,Redundant -> Inundated,20652,3442,46954,281724,14754,TRUE,6,3,baseline_redundant_n
+with_physical,Redundant -> Worse,20652,3442,46954,281724,27193,TRUE,6,3,baseline_redundant_n
+with_physical,Fragile -> Isolated,19068,3178,16114,96684,3563,TRUE,6,3,baseline_fragile_n
+with_physical,Fragile -> Inundated,19068,3178,16114,96684,5658,TRUE,6,3,baseline_fragile_n
+with_physical,Fragile -> Worse,19068,3178,16114,96684,9221,TRUE,6,3,baseline_fragile_n
